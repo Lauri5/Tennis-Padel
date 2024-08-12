@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="25dp"
     tools:context=".Login">
 
     <com.google.android.material.textview.MaterialTextView
@@ -19,6 +18,8 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
+        android:layout_marginEnd="25dp"
+        android:layout_marginStart="25dp"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -30,6 +31,8 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
+        android:layout_marginEnd="25dp"
+        android:layout_marginStart="25dp"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -39,10 +42,26 @@
             android:hint="@string/password" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:id="@+id/progressBar"/>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/loginButton"
         android:text="@string/login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/registerNow"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:layout_margin="20dp"
+        android:textStyle="bold"
+        android:text="@string/click_to_register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>
