@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "825019635825",
+    "project_id": "tennis-padel-85718",
+    "storage_bucket": "tennis-padel-85718.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:825019635825:android:842252d71577d601c123d0",
+        "android_client_info": {
+          "package_name": "com.example.tennis_padel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpEoBJJjy57L30x9zj78GCLGUMuWbFSAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
