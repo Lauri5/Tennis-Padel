@@ -3,7 +3,6 @@ package com.example.tennis_padel;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RegisterViewModel extends ViewModel {
