@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -45,9 +46,13 @@ public class Login extends AppCompatActivity {
         buttonLog.setOnClickListener(view -> {
             String email = String.valueOf(editTextEmail.getText());
             String password = String.valueOf(editTextPassword.getText());
-            loginViewModel.loginUser(email, password);
+            if (email.isEmpty() || password.isEmpty())
+                Toast.makeText(this, "Fill the Login field correctly", Toast.LENGTH_SHORT).show();
+            else
+                loginViewModel.loginUser(email, password);
         });
 
+        // If user is authenticated the main activity gets selected
         loginViewModel.userAuthenticated.observe(this, isAuthenticated -> {
             if (isAuthenticated) {
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -55,6 +60,7 @@ public class Login extends AppCompatActivity {
             }
         });
 
+        // Error message if the authentication fails
         loginViewModel.authenticationFailed.observe(this, isFailed -> {
             if (isFailed) {
                 Toast.makeText(Login.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
@@ -65,6 +71,7 @@ public class Login extends AppCompatActivity {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
+        // If the sign up text is clicked the register activity is selected
         textViewRegister.setOnClickListener(view -> {
             startActivity(new Intent(getApplicationContext(), Register.class));
             finish();
@@ -74,6 +81,8 @@ public class Login extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        // If user is already logged in than main activity gets selected
         if (loginViewModel.isUserLoggedIn()) {
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
             finish();

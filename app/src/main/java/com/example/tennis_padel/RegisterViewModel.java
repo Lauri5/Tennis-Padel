@@ -17,6 +17,7 @@ public class RegisterViewModel extends ViewModel {
         db = FirebaseFirestore.getInstance();
     }
 
+    // Register process
     public void registerUser(String email, String password) {
         isLoading.setValue(true);
         mAuth.createUserWithEmailAndPassword(email, password)

@@ -45,9 +45,13 @@ public class Register extends AppCompatActivity {
         buttonReg.setOnClickListener(view -> {
             String email = String.valueOf(editTextEmail.getText());
             String password = String.valueOf(editTextPassword.getText());
-            registerViewModel.registerUser(email, password);
+            if (email.isEmpty() || password.isEmpty())
+                Toast.makeText(this, "Fill the Register field correctly", Toast.LENGTH_SHORT).show();
+            else
+                registerViewModel.registerUser(email, password);
         });
 
+        // If user is authenticated the main activity gets selected
         registerViewModel.userRegistered.observe(this, isRegistered -> {
             if (isRegistered) {
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
@@ -55,6 +59,7 @@ public class Register extends AppCompatActivity {
             }
         });
 
+        // Error message if the registration fails
         registerViewModel.registrationFailed.observe(this, isFailed -> {
             if (isFailed) {
                 Toast.makeText(Register.this, "Registration failed.", Toast.LENGTH_SHORT).show();
@@ -65,6 +70,7 @@ public class Register extends AppCompatActivity {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
+        // If the sign in text is clicked the login activity is selected
         textViewLogin.setOnClickListener(view -> {
             startActivity(new Intent(getApplicationContext(), Login.class));
             finish();

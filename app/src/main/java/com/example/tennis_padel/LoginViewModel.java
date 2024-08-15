@@ -14,10 +14,14 @@ public class LoginViewModel extends ViewModel {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    // Login process
     public void loginUser(String email, String password) {
-        isLoading.setValue(true);
+        if (email == "" || password == ""){
+            return;
+        }
+        isLoading.setValue(true); // Makes the progressbar appear
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-            isLoading.setValue(false);
+            isLoading.setValue(false); // Makes the progressbar disappear
             if (task.isSuccessful()) {
                 userAuthenticated.setValue(true);
             } else {
