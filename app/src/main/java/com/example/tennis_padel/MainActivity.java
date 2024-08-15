@@ -2,8 +2,10 @@ package com.example.tennis_padel;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -12,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,26 +40,29 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navView = findViewById(R.id.nav_view);
 
         // Handling the navigation item selection with setOnItemSelectedListener
-        navView.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
+        navView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment selectedFragment = null;
+                int itemId = item.getItemId();
+
+                if (itemId == R.id.navigation_home) {
                     selectedFragment = new HomeFragment();
-                    break;
-                case R.id.navigation_search:
+                } else if (itemId== R.id.navigation_search) {
                     selectedFragment = new SearchFragment();
-                    break;
-                case R.id.navigation_profile:
+                } else if (itemId == R.id.navigation_profile) {
                     selectedFragment = new ProfileFragment();
-                    break;
-                case R.id.navigation_book_lesson:
+                } else if (itemId == R.id.navigation_book_lesson) {
                     selectedFragment = new BookLessonFragment();
-                    break;
+                }
+
+                if (selectedFragment != null) {
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, selectedFragment)
+                            .commit();
+                }
+                return true;
             }
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, selectedFragment)
-                    .commit();
-            return true; // true to display the item as the selected item
         });
 
         // To display the home fragment initially when the app starts
