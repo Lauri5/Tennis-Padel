@@ -7,4 +7,9 @@
     <string name="click_to_login">Click to Sign In</string>
     <string name="click_to_register">Click to Sign Up</string>
     <string name="Logout">Logout</string>
+    <string name="home">HOME</string>
+    <string name="search">CERCA</string>
+    <string name="profile">PROFILO</string>
+    <string name="book_lesson">PRENOTA LEZIONI</string>
+    <string name="hello_blank_fragment">blank</string>
 </resources>

@@ -16,9 +16,6 @@ public class LoginViewModel extends ViewModel {
 
     // Login process
     public void loginUser(String email, String password) {
-        if (email == "" || password == ""){
-            return;
-        }
         isLoading.setValue(true); // Makes the progressbar appear
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             isLoading.setValue(false); // Makes the progressbar disappear
