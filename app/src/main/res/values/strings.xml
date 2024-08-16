@@ -12,4 +12,11 @@
     <string name="profile">PROFILO</string>
     <string name="book_lesson">PRENOTA LEZIONI</string>
     <string name="hello_blank_fragment">blank</string>
+    <string name="nameBio">Name</string>
+    <string name="lastNameBio">Last Name</string>
+    <string name="bioBio">Bio</string>
+    <string name="reputationBio">Reputation</string>
+    <string name="wins">W</string>
+    <string name="losses">L</string>
+    <string name="Rank">Rank</string>
 </resources>

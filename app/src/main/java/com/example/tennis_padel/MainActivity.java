@@ -21,11 +21,6 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-    FirebaseAuth mAuth;
-    MaterialButton button;
-    MaterialTextView textView;
-    FirebaseUser user;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,25 +64,5 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
-
-        mAuth = FirebaseAuth.getInstance();
-            button = findViewById(R.id.logout);
-            textView = findViewById(R.id.textView);
-            user = mAuth.getCurrentUser();
-
-            if (user == null){
-                Intent intent = new Intent(getApplicationContext(), Login.class);
-                startActivity(intent);
-                finish();
-            }else{
-                textView.setText(user.getEmail());
-            }
-
-            button.setOnClickListener(view -> {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(getApplicationContext(), Login.class);
-                startActivity(intent);
-                finish();
-            });
     }
 }

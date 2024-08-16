@@ -35,17 +35,18 @@ android {
 
 dependencies {
 
-    implementation(libs.material.v140)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
     implementation(libs.appcompat)
-    implementation(libs.material)
+    implementation(libs.material.v140)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.auth)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.navigation.fragment)
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
     implementation(libs.navigation.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
