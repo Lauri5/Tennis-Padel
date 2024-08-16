@@ -15,19 +15,17 @@
         app:layout_constraintGuide_percent="0.3" />
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imageProfile"
+        android:id="@+id/profileImage"
         android:layout_width="80dp"
         android:layout_height="80dp"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toStartOf="@id/left_guideline"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ImageContrastCheck"
-        tools:src="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/winsNumber"
+        android:id="@+id/winsText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -37,19 +35,18 @@
         app:layout_constraintEnd_toEndOf="@id/guideline"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/left_guideline"
-        app:layout_constraintTop_toTopOf="@id/imageProfile" />
+        app:layout_constraintTop_toTopOf="@id/profileImage" />
 
     <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/winsText"
+        android:id="@+id/winsNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="0"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="@id/imageProfile" />
+        app:layout_constraintTop_toTopOf="@id/profileImage" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/lossesText"
@@ -67,7 +64,6 @@
         android:id="@+id/lossesNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="0"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -90,7 +86,6 @@
         android:id="@+id/rankNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Undefined"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -107,7 +102,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageProfile" />
+        app:layout_constraintTop_toBottomOf="@id/profileImage" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/nameInProfile"
@@ -115,7 +110,6 @@
         android:layout_height="wrap_content"
         android:focusable="false"
         android:layout_marginTop="8dp"
-        android:hint="@string/nameBio"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/nameProfile" />
@@ -138,7 +132,6 @@
         android:layout_height="wrap_content"
         android:focusable="false"
         android:layout_marginTop="8dp"
-        android:hint="@string/lastNameBio"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/lastNameProfile" />
@@ -160,7 +153,6 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="@string/bioBio"
         android:maxLines="4"
         android:lines="4"
         android:focusable="false"
@@ -187,8 +179,7 @@
         android:layout_marginTop="8dp"
         android:isIndicator="true"
         android:numStars="5"
-        android:rating="0"
-        android:stepSize="1.0"
+        android:stepSize="0.5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"
@@ -207,25 +198,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/Logout"
-        app:layout_constraintBottom_toBottomOf="@+id/materialButton"
+        app:layout_constraintBottom_toBottomOf="@+id/edit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/materialButton"
-        app:layout_constraintTop_toTopOf="@+id/materialButton"
+        app:layout_constraintTop_toTopOf="@+id/edit"
         app:layout_constraintVertical_bias="0.0" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/materialButton"
-        android:minWidth="120dp"
+        android:id="@+id/edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="120dp"
         android:text="@string/edit"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/logout"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ratingBar"
-        app:layout_constraintVertical_bias="0.144" />
+        app:layout_constraintVertical_bias="0.15" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

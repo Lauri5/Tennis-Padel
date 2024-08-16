@@ -10,9 +10,15 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RatingBar;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 
 public class ProfileFragment extends Fragment {
@@ -27,16 +33,8 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        loadUserProfile();
         MaterialButton button = view.findViewById(R.id.logout);
-
-        // If no user is logged in redirect to login page
-        if (currentUser == null){
-            startActivity(new Intent(requireContext(), Login.class));
-            requireActivity().finish();
-        }
 
         // Logout button
         button.setOnClickListener(v -> {
@@ -45,4 +43,36 @@ public class ProfileFragment extends Fragment {
             requireActivity().finish();
         });
     }
+
+    public void loadUserProfile() {
+        User user = UserDataRepository.getInstance().getUser();
+        if (user != null) {
+            // Update UI elements with user data
+            TextInputEditText name = requireView().findViewById(R.id.nameInProfile);
+            TextInputEditText lastName = requireView().findViewById(R.id.lastNameInProfile);
+            TextInputEditText bio = requireView().findViewById(R.id.bioInProfile);
+            MaterialTextView wins = requireView().findViewById(R.id.winsNumber);
+            MaterialTextView losses = requireView().findViewById(R.id.lossesNumber);
+            MaterialTextView rank = requireView().findViewById(R.id.rankNumber);
+            RatingBar ratingBar = requireView().findViewById(R.id.ratingBar);
+
+            name.setText(user.getName());
+            lastName.setText(user.getLastName());
+            bio.setText(user.getBio());
+            wins.setText(String.valueOf(user.getWins()));
+            losses.setText(String.valueOf(user.getLosses()));
+            rank.setText(String.valueOf(user.getRatingRank()));
+            ratingBar.setRating(user.getRatingRep());
+
+
+            ImageView profileImage = requireView().findViewById(R.id.profileImage);
+            if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+                Glide.with(requireContext())
+                        .load(user.getProfilePicture())
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(profileImage);
+            }
+        }
+    }
+
 }

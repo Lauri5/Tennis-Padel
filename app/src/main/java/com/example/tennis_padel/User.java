@@ -10,9 +10,9 @@ enum Role{
 
 public class User {
     private String id, email, name, lastName, bio, profilePicture;
-    int numberOfVotes, wins, losses;
+    private int numberOfVotes, wins, losses, ratingRank;
     private ArrayList<String> reports;
-    private float ratingRep, ratingRank;
+    private float ratingRep;
     private ArrayList<Reservation> reservations;
     private Role role;
 
@@ -20,7 +20,10 @@ public class User {
         this.id = id;
         this.email = email;
         this.role = Role.STUDENT;
+        this.profilePicture = "https://firebasestorage.googleapis.com/v0/b/tennis-padel-85718.appspot.com/o/ProfilePlaceHolder.png?alt=media&token=0fdd99d6-c24a-47bf-9a1c-336883cf5fc9";
     }
+
+    public User(){}
 
     public Role getRole() {
         return role;
@@ -118,11 +121,11 @@ public class User {
         this.ratingRep = ratingRep;
     }
 
-    public float getRatingRank() {
+    public int getRatingRank() {
         return ratingRank;
     }
 
-    public void setRatingRank(float ratingRank) {
+    public void setRatingRank(int ratingRank) {
         this.ratingRank = ratingRank;
     }
 

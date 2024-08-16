@@ -1,7 +1,9 @@
 package com.example.tennis_padel;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -12,7 +14,13 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +34,15 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        FirebaseApp.initializeApp(this);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        // If no user is logged in redirect to login page
+        if (user == null){
+            startActivity(new Intent(this, Login.class));
+            finish();
+        }
+        loadUserData(user);
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
 
@@ -60,4 +77,28 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragment_container, new HomeFragment())
                 .commit();
     }
+
+    private void loadUserData(FirebaseUser firebaseUser) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(firebaseUser.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            User user = new User();
+                            user.setName(document.getString("name"));
+                            user.setLastName(document.getString("lastName"));
+                            user.setBio(document.getString("bio"));
+                            user.setWins(document.getLong("wins").intValue());
+                            user.setLosses(document.getLong("losses").intValue());
+                            user.setRatingRank(document.getLong("ratingRank").intValue());
+                            user.setRatingRep(document.getLong("ratingRep").floatValue());
+                            user.setProfilePicture(document.getString("profilePicture"));
+                            UserDataRepository.getInstance().setUser(user);
+                        }
+                    }
+                });
+    }
+
 }
