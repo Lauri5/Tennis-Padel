@@ -43,7 +43,7 @@ public class Register extends AppCompatActivity {
         ProgressBar progressBar = findViewById(R.id.progressBar);
 
         buttonReg.setOnClickListener(view -> {
-            String email = String.valueOf(editTextEmail.getText());
+            String email = String.valueOf(editTextEmail.getText().toString().trim());
             String password = String.valueOf(editTextPassword.getText());
             if (email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Fill the Register field correctly", Toast.LENGTH_SHORT).show();

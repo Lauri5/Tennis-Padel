@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
                             User user = new User();
+                            user.setId(document.getId());
                             user.setName(document.getString("name"));
                             user.setLastName(document.getString("lastName"));
                             user.setBio(document.getString("bio"));
