@@ -19,4 +19,5 @@
     <string name="wins">Wins</string>
     <string name="losses">Losses</string>
     <string name="rank">Rank</string>
+    <string name="hello_blank_fragment">hello</string>
 </resources>

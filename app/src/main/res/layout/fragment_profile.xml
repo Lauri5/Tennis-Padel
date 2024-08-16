@@ -16,13 +16,13 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageProfile"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toStartOf="@id/left_guideline"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.28"
         tools:src="@tools:sample/avatars" />
 
     <com.google.android.material.textview.MaterialTextView
@@ -202,7 +202,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/logout"
-        android:layout_width="95dp"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="@string/Logout"
         app:layout_constraintBottom_toBottomOf="@+id/materialButton"
@@ -214,7 +214,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/materialButton"
-        android:layout_width="95dp"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="@string/edit"
         app:layout_constraintBottom_toBottomOf="parent"
