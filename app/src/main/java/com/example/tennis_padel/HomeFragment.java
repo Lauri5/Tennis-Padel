@@ -19,27 +19,4 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-        MaterialButton button = view.findViewById(R.id.logout);
-        MaterialTextView textView = view.findViewById(R.id.textView);
-        FirebaseUser user = mAuth.getCurrentUser();
-
-        if (user == null){
-            startActivity(new Intent(requireContext(), Login.class));
-            requireActivity().finish();
-        } else {
-            textView.setText(user.getEmail());
-        }
-
-        button.setOnClickListener(v -> {
-            FirebaseAuth.getInstance().signOut();
-            startActivity(new Intent(requireContext(), Login.class));
-            requireActivity().finish();
-        });
-    }
 }

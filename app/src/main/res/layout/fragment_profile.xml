@@ -29,8 +29,8 @@
         android:id="@+id/winsNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Wins"
         android:layout_marginStart="20dp"
+        android:text="@string/wins"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/guideline"
@@ -55,7 +55,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:text="Losses"
+        android:text="@string/losses"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/guideline"
@@ -78,7 +78,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:text="Rank"
+        android:text="@string/rank"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@id/guideline"
@@ -112,6 +112,7 @@
         android:id="@+id/nameInProfile"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:focusable="false"
         android:layout_marginTop="8dp"
         android:hint="@string/nameBio"
         app:layout_constraintEnd_toEndOf="parent"
@@ -134,6 +135,7 @@
         android:id="@+id/lastNameInProfile"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:focusable="false"
         android:layout_marginTop="8dp"
         android:hint="@string/lastNameBio"
         app:layout_constraintEnd_toEndOf="parent"
@@ -158,7 +160,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="@string/bioBio"
+        android:maxLines="4"
         android:lines="4"
+        android:focusable="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bioProfile" />
@@ -197,12 +201,28 @@
         app:layout_constraintGuide_begin="205dp" />
 
     <com.google.android.material.button.MaterialButton
-        android:layout_width="wrap_content"
+        android:id="@+id/logout"
+        android:layout_width="95dp"
         android:layout_height="wrap_content"
-        android:text="Edit"
+        android:text="@string/Logout"
+        app:layout_constraintBottom_toBottomOf="@+id/materialButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/materialButton"
+        app:layout_constraintTop_toTopOf="@+id/materialButton"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/materialButton"
+        android:layout_width="95dp"
+        android:layout_height="wrap_content"
+        android:text="@string/edit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/logout"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ratingBar" />
+        app:layout_constraintTop_toBottomOf="@+id/ratingBar"
+        app:layout_constraintVertical_bias="0.144" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
