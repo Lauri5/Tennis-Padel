@@ -1,18 +1,20 @@
 package com.example.tennis_padel;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RatingBar;
-import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -21,16 +23,19 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 
 public class ProfileFragment extends Fragment {
 
-    private TextInputEditText name;
-    private TextInputEditText lastName;
-    private TextInputEditText bio;
+    private String tokenUrl;
+    private TextInputEditText name, lastName, bio;
+    private ImageView profileImage;
     private User user;
     private FirebaseFirestore db;
     private boolean isEditMode;
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -52,16 +57,37 @@ public class ProfileFragment extends Fragment {
         isEditMode = false;
         updateEditMode();
 
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        uploadImageToFirebase(imageUri);
+                    }
+                }
+        );
+
+        // Profile image button
+        profileImage.setOnClickListener(v -> {
+            if (isEditMode) {
+                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.setType("image/*");
+                imagePickerLauncher.launch(intent); // Use the launcher to start the activity
+            }
+        });
+
         // Edit button
         editButton.setOnClickListener(view1 -> {
             isEditMode = !isEditMode;
             editButton.setText(isEditMode ? "Save" : "Edit");
             updateEditMode();
 
-            if (!isEditMode){
+            if (!isEditMode) {
                 user.setName(name.getText().toString().trim());
                 user.setLastName(lastName.getText().toString().trim());
                 user.setBio(bio.getText().toString().trim());
+                if (tokenUrl != null)
+                    user.setProfilePicture(tokenUrl);
 
                 updateUserInDB();
             }
@@ -73,6 +99,25 @@ public class ProfileFragment extends Fragment {
             startActivity(new Intent(requireContext(), Login.class));
             requireActivity().finish();
         });
+    }
+
+    private void uploadImageToFirebase(Uri imageUri) {
+        if (imageUri != null) {
+            // Use an "images" folder in Firebase Storage and the image name is user id
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference("images/" + user.getId());
+
+            storageReference.putFile(imageUri)
+                    .addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl()
+                            .addOnSuccessListener(uri -> {
+                                String downloadUrl = uri.toString();
+                                Glide.with(requireContext())
+                                        .load(downloadUrl)
+                                        .apply(RequestOptions.circleCropTransform())
+                                        .into(profileImage);
+                                tokenUrl = downloadUrl;
+                            })
+                    );
+        }
     }
 
     private void updateEditMode() {
@@ -90,7 +135,8 @@ public class ProfileFragment extends Fragment {
                     .update(
                             "name", user.getName(),
                             "lastName", user.getLastName(),
-                            "bio", user.getBio()
+                            "bio", user.getBio(),
+                            "profilePicture", user.getProfilePicture()
                     );
         }
     }
@@ -115,7 +161,7 @@ public class ProfileFragment extends Fragment {
             ratingBar.setRating(user.getRatingRep());
 
 
-            ImageView profileImage = requireView().findViewById(R.id.profileImage);
+            profileImage = requireView().findViewById(R.id.profileImage);
             if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
                 Glide.with(requireContext())
                         .load(user.getProfilePicture())

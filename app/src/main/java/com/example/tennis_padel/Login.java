@@ -1,18 +1,17 @@
 package com.example.tennis_padel;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -44,7 +43,7 @@ public class Login extends AppCompatActivity {
         ProgressBar progressBar = findViewById(R.id.progressBar);
 
         buttonLog.setOnClickListener(view -> {
-            String email = String.valueOf(editTextEmail.getText().toString().trim());
+            String email = editTextEmail.getText().toString().trim();
             String password = String.valueOf(editTextPassword.getText());
             if (email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Fill the Login field correctly", Toast.LENGTH_SHORT).show();

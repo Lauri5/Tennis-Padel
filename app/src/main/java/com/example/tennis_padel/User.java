@@ -2,7 +2,7 @@ package com.example.tennis_padel;
 
 import java.util.ArrayList;
 
-enum Role{
+enum Role {
     ADMIN,
     TEACHER,
     STUDENT
@@ -23,7 +23,8 @@ public class User {
         this.profilePicture = "https://firebasestorage.googleapis.com/v0/b/tennis-padel-85718.appspot.com/o/ProfilePlaceHolder.png?alt=media&token=0fdd99d6-c24a-47bf-9a1c-336883cf5fc9";
     }
 
-    public User(){}
+    public User() {
+    }
 
     public Role getRole() {
         return role;

@@ -1,11 +1,12 @@
 package com.example.tennis_padel;
 
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
+
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginViewModel extends ViewModel {
-    private FirebaseAuth mAuth;
+    private final FirebaseAuth mAuth;
     public MutableLiveData<Boolean> userAuthenticated = new MutableLiveData<>();
     public MutableLiveData<Boolean> authenticationFailed = new MutableLiveData<>();
     public MutableLiveData<Boolean> isLoading = new MutableLiveData<>();

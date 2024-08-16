@@ -1,13 +1,14 @@
 package com.example.tennis_padel;
 
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RegisterViewModel extends ViewModel {
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    private final FirebaseAuth mAuth;
+    private final FirebaseFirestore db;
     public MutableLiveData<Boolean> userRegistered = new MutableLiveData<>();
     public MutableLiveData<Boolean> registrationFailed = new MutableLiveData<>();
     public MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
