@@ -41,6 +41,7 @@ public class ProfileViewModel extends ViewModel {
 
     public void logout() {
         FirebaseAuth.getInstance().signOut();
+        user = null;
     }
 
     public interface OnImageUploadListener {

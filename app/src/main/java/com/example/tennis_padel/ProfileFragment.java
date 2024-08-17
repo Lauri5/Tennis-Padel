@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RatingBar;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -18,10 +20,13 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textview.MaterialTextView;
 
 public class ProfileFragment extends Fragment {
 
     private TextInputEditText name, lastName, bio;
+    private MaterialTextView wins, losses, rank;
+    private RatingBar ratingBar;
     private ImageView profileImage;
     private ProfileViewModel viewModel;
     private boolean isEditMode;
@@ -50,6 +55,10 @@ public class ProfileFragment extends Fragment {
         name = view.findViewById(R.id.nameInProfile);
         lastName = view.findViewById(R.id.lastNameInProfile);
         bio = view.findViewById(R.id.bioInProfile);
+        wins = view.findViewById(R.id.winsNumber);
+        losses = view.findViewById(R.id.lossesNumber);
+        rank = view.findViewById(R.id.rankNumber);
+        ratingBar = view.findViewById(R.id.ratingBar);
         profileImage = view.findViewById(R.id.profileImage);
         profileImage.setOnClickListener(v -> {
             if (isEditMode) {
@@ -86,6 +95,7 @@ public class ProfileFragment extends Fragment {
 
     private void setupEditButton(MaterialButton editButton) {
         isEditMode = false;
+        updateEditMode();
         editButton.setOnClickListener(view -> {
             isEditMode = !isEditMode;
             editButton.setText(isEditMode ? "Save" : "Edit");
@@ -132,6 +142,11 @@ public class ProfileFragment extends Fragment {
             name.setText(user.getName());
             lastName.setText(user.getLastName());
             bio.setText(user.getBio());
+            wins.setText(String.valueOf(user.getWins()));
+            losses.setText(String.valueOf(user.getLosses()));
+            rank.setText(String.valueOf(user.getRatingRank()));
+            ratingBar.setRating(user.getRatingRep());
+
             if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
                 updateProfileImage(user.getProfilePicture());
             }
