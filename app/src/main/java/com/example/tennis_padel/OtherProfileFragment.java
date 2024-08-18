@@ -194,4 +194,3 @@ public class OtherProfileFragment extends Fragment {
         });
     }
 }
-
