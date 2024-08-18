@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -176,6 +177,7 @@ public class OtherProfileFragment extends Fragment {
         }
         return view;
     }
+
     private void sendRatingToDatabase(String userId, float rating) {
         DocumentReference userDocRef = db.collection("users").document(user.getId());
         db.runTransaction((Transaction.Function<Void>) transaction -> {
