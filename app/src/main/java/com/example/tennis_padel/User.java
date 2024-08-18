@@ -2,6 +2,7 @@ package com.example.tennis_padel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 enum Role {
@@ -35,6 +36,21 @@ public class User implements Serializable {
     }
 
     public User() {
+    }
+
+    public boolean makeReservation(Court court, Date dateTime, boolean isLesson) {
+        if (court.isAvailable(dateTime)) {
+            Reservation reservation = new Reservation(generateReservationId(), court, dateTime, isLesson);
+            reservation.addPlayer(this);
+            court.addReservation(reservation);
+            reservations.add(reservation);
+            return true;
+        }
+        return false;
+    }
+
+    private String generateReservationId() {
+        return "RES-" + System.currentTimeMillis();  // just a simple example
     }
 
     public Role getRole() {
