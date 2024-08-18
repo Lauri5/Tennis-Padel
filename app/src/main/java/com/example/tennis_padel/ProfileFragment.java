@@ -26,7 +26,7 @@ public class ProfileFragment extends Fragment {
 
     private TextInputEditText name, lastName, bio;
     private MaterialTextView wins, losses, rank;
-    private RatingBar ratingBar;
+    private RatingBar  ratingBar;
     private ImageView profileImage;
     private ProfileViewModel viewModel;
     private boolean isEditMode;
@@ -52,12 +52,12 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupViews(View view) {
-        name = view.findViewById(R.id.nameInProfile);
-        lastName = view.findViewById(R.id.lastNameInProfile);
-        bio = view.findViewById(R.id.bioInProfile);
-        wins = view.findViewById(R.id.winsNumber);
-        losses = view.findViewById(R.id.lossesNumber);
-        rank = view.findViewById(R.id.rankNumber);
+        name = view.findViewById(R.id.nameInProfileOther);
+        lastName = view.findViewById(R.id.lastnameInProfileOther);
+        bio = view.findViewById(R.id.bioInProfileOther);
+        wins = view.findViewById(R.id.winsNumberOther);
+        losses = view.findViewById(R.id.lossesNumberOther);
+        rank = view.findViewById(R.id.rankNumberOther);
         ratingBar = view.findViewById(R.id.ratingBar);
         profileImage = view.findViewById(R.id.profileImage);
         profileImage.setOnClickListener(v -> {

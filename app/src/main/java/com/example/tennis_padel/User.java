@@ -1,6 +1,8 @@
 package com.example.tennis_padel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 enum Role {
     ADMIN,
@@ -8,12 +10,22 @@ enum Role {
     STUDENT
 }
 
-public class User {
+enum Report{
+    UNSPORTSMANLIKE_CONDUCT,
+    CHEATING,
+    PHYSICAL_AGGRESSION,
+    FALSE_VICTORY,
+    RULE_VIOLATION,
+    SAFETY_CONCERN
+}
+
+public class User implements Serializable {
     private String id, email, name, lastName, bio, profilePicture;
-    private int numberOfVotes, wins, losses, ratingRank;
-    private ArrayList<String> reports;
+    private int wins, losses, ratingRank;
+    private HashMap<String, Report> reports;
     private float ratingRep;
     private ArrayList<Reservation> reservations;
+    private HashMap<String, Float> voters;
     private Role role;
 
     public User(String id, String email) {
@@ -82,12 +94,12 @@ public class User {
         this.profilePicture = profilePicture;
     }
 
-    public int getNumberOfVotes() {
-        return numberOfVotes;
+    public HashMap<String, Float> getVoters() {
+        return voters;
     }
 
-    public void setNumberOfVotes(int numberOfVotes) {
-        this.numberOfVotes = numberOfVotes;
+    public void setVoters(HashMap<String, Float> voters) {
+        this.voters = voters;
     }
 
     public int getWins() {
@@ -106,16 +118,24 @@ public class User {
         this.losses = losses;
     }
 
-    public ArrayList<String> getReports() {
+    public HashMap<String, Report> getReports() {
         return reports;
     }
 
-    public void setReports(ArrayList<String> reports) {
+    public void setReports(HashMap<String, Report> reports) {
         this.reports = reports;
     }
 
     public float getRatingRep() {
-        return ratingRep;
+        if (voters == null || voters.isEmpty()) {
+            return 0;
+        }
+
+        int sum = 0;
+        for (Float value : voters.values()) {
+            sum += value;
+        }
+        return sum / (float) voters.size();
     }
 
     public void setRatingRep(float ratingRep) {

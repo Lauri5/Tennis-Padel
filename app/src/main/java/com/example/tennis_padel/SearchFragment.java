@@ -22,11 +22,11 @@ public class SearchFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchView);
-        searchView.setIconifiedByDefault(false); // Make the entire search view clickable
+        searchView.setIconifiedByDefault(false); // Make sure it's fully expanded
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        userAdapter = new UserAdapter(getContext(), null); // Initialize with an empty list
+        userAdapter = new UserAdapter(getContext(), null, this::openOtherProfileFragment); // Initialize with an empty list
         recyclerView.setAdapter(userAdapter);
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
@@ -57,5 +57,16 @@ public class SearchFragment extends Fragment {
         viewModel.loadAllUsers();
 
         return view;
+    }
+
+    private void openOtherProfileFragment(User user) {
+        // Create a new instance of OtherProfileFragment
+        OtherProfileFragment otherProfileFragment = OtherProfileFragment.newInstance(user);
+
+        // Replace the current fragment with OtherProfileFragment
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, otherProfileFragment)
+                .addToBackStack(null)
+                .commit();
     }
 }

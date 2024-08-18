@@ -18,13 +18,20 @@ import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
+    public interface OnItemClickListener {
+        void onItemClick(User user);
+    }
+
     private List<User> userList, filteredUserList;
     private Context context;
+    private OnItemClickListener listener;
 
-    public UserAdapter(Context context, List<User> userList) {
+    public UserAdapter(Context context, List<User> userList, OnItemClickListener listener) {
         this.context = context;
         this.userList = userList != null ? userList : new ArrayList<>(); // Ensure userList is not null
         this.filteredUserList = new ArrayList<>(this.userList);
+        this.listener = listener;
+
     }
 
     @NonNull
@@ -38,17 +45,19 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = filteredUserList.get(position);
 
-        // Clear or set placeholder for the imageView to avoid showing incorrect images
-        holder.imageView.setImageDrawable(null);  // Optional: Use a placeholder if needed
-
         holder.nameTextView.setText(user.getName());
         holder.lastNameTextView.setText(user.getLastName());
-
-        // Correctly set the image for this user
         Glide.with(context)
                 .load(user.getProfilePicture())
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
+
+        // Set click listener on the itemView
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(user);
+            }
+        });
     }
 
     @Override
@@ -89,11 +98,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 if (user.getName().toLowerCase().contains(query) ||
                         user.getLastName().toLowerCase().contains(query)) {
                     filteredUserList.add(user);
-                    Log.d("Filter", "Added user: " + user.getName() + " " + user.getLastName());
                 }
             }
         }
-        Log.d("Filter", "Total users found: " + filteredUserList.size());
         notifyDataSetChanged();
     }
 }

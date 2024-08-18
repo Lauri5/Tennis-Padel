@@ -6,13 +6,20 @@ enum CourtStatus {
     SEMI_RESERVED
 }
 
+enum CourtType {
+    INDOOR,
+    OUTDOOR
+}
+
 public class Court {
     private String name;
     private CourtStatus status;
+    private CourtType type;
 
-    public Court(String name) {
+    public Court(String name, CourtType type) {
         this.name = name;
         this.status = CourtStatus.AVAILABLE;
+        this.type = type;
     }
 
     public CourtStatus getStatus() {
@@ -29,5 +36,13 @@ public class Court {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public CourtType getType() {
+        return type;
+    }
+
+    public void setType(CourtType type) {
+        this.type = type;
     }
 }

@@ -21,4 +21,5 @@
     <string name="rank">Rank</string>
     <string name="hello_blank_fragment">hello</string>
     <string name="report">Report</string>
+    <string name="star">★</string>
 </resources>
