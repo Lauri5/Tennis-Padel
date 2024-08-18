@@ -154,6 +154,11 @@ public class User implements Serializable {
     }
 
     public int getRatingRank() {
+        if (wins + losses != 0) {
+            ratingRank = (int)(((float) wins / (wins + losses)) * 100);
+        } else {
+            ratingRank = 0; // Handle cases where no games have been played yet
+        }
         return ratingRank;
     }
 

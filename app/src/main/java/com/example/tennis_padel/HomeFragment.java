@@ -1,5 +1,7 @@
 package com.example.tennis_padel;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
@@ -99,12 +102,23 @@ public class HomeFragment extends Fragment {
                         rankList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String name = document.getString("name");
-                            int rank = document.getLong("ratingRank").intValue(); // Assuming you store rank as "ratingRank"
+                            String profilePictureUrl = document.getString("profilePicture");
+                            String lastName = document.getString("lastName");
+                            int wins = ((Number) document.get("wins")).intValue();
+                            int losses = ((Number) document.get("losses")).intValue();
+
                             User user = new User();
                             user.setName(name);
-                            user.setRatingRank(rank);
+                            user.setLastName(lastName);
+                            user.setProfilePicture(profilePictureUrl);
+                            user.setWins(wins);
+                            user.setLosses(losses);
                             rankList.add(user);
                         }
+
+                        // Now sort the list by rank in descending order
+                        Collections.sort(rankList, (u1, u2) -> Float.compare(u2.getRatingRank(), u1.getRatingRank())); // Sorting by rank, highest first
+
                         rankTableAdapter.notifyDataSetChanged();
                     }
                 });
