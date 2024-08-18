@@ -1,5 +1,6 @@
 package com.example.tennis_padel;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -71,6 +73,7 @@ public class OtherProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_other_profile, container, false);
         db = FirebaseFirestore.getInstance();
 
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         MaterialTextView nameTextView = view.findViewById(R.id.nameInProfileOther);
         MaterialTextView lastNameTextView = view.findViewById(R.id.lastnameInProfileOther);
         MaterialTextView bioTextView = view.findViewById(R.id.bioInProfileOther);
@@ -83,84 +86,93 @@ public class OtherProfileFragment extends Fragment {
         MaterialButton starButton = view.findViewById(R.id.starButton);
         Spinner spinnerReport = view.findViewById(R.id.spinnerReport);
 
-        if (user != null) {
-            nameTextView.setText(user.getName());
-            lastNameTextView.setText(user.getLastName());
-            bioTextView.setText(user.getBio());
-            winsTextView.setText(String.valueOf(user.getWins()));
-            lossesTextView.setText(String.valueOf(user.getLosses()));
-            rankTextView.setText(String.valueOf(user.getRatingRank()));
-            ratingBar.setRating(user.getRatingRep());
+        if (currentUserId.equals(user.getId())) {
+            Fragment ProfileFragment = new ProfileFragment();
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, ProfileFragment)
+                    .addToBackStack(null)
+                    .commit();
+            BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.nav_view);
+            bottomNavigationView.setSelectedItemId(R.id.navigation_profile);
 
-            List<String> reportsList = new ArrayList<>();
-            HashMap<String, Report> stringToReportMap = new HashMap<>();
-            for (Report report : Report.values()) {
-                String displayString = reportDisplayMap.get(report);
-                reportsList.add(displayString);
-                stringToReportMap.put(displayString, report);
-            }
+        } else {
+            if (user != null) {
+                nameTextView.setText(user.getName());
+                lastNameTextView.setText(user.getLastName());
+                bioTextView.setText(user.getBio());
+                winsTextView.setText(String.valueOf(user.getWins()));
+                lossesTextView.setText(String.valueOf(user.getLosses()));
+                rankTextView.setText(String.valueOf(user.getRatingRank()));
+                ratingBar.setRating(user.getRatingRep());
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, reportsList);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerReport.setAdapter(adapter);
-
-            spinnerReport.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selectedItem = parent.getItemAtPosition(position).toString();
-                    selectedReport = stringToReportMap.get(selectedItem); // Update the selected report
+                List<String> reportsList = new ArrayList<>();
+                HashMap<String, Report> stringToReportMap = new HashMap<>();
+                for (Report report : Report.values()) {
+                    String displayString = reportDisplayMap.get(report);
+                    reportsList.add(displayString);
+                    stringToReportMap.put(displayString, report);
                 }
 
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                }
-            });
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, reportsList);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerReport.setAdapter(adapter);
 
-            Glide.with(requireContext())
-                    .load(user.getProfilePicture())
-                    .circleCrop()
-                    .into(profileImageView);
-
-            ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-                @Override
-                public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                    if (fromUser) {
-                        lastRating = rating;  // Update the last rating whenever the user changes it
+                spinnerReport.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        String selectedItem = parent.getItemAtPosition(position).toString();
+                        selectedReport = stringToReportMap.get(selectedItem); // Update the selected report
                     }
-                }
-            });
 
-            starButton.setOnClickListener(v -> {
-                if (user != null && lastRating > 0) {
-                    String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    sendRatingToDatabase(currentUserId, Math.round(lastRating));
-                }
-            });
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                    }
+                });
 
-            reportButton.setOnClickListener(view1 ->  {
-                if (selectedReport != null) {
-                    String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    String reportKey = currentUserId + "_" + LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")); // Create a unique key using the user ID and timestamp
-                    Map<String, Object> reportMap = new HashMap<>();
-                    reportMap.put(reportKey, selectedReport.name());
+                Glide.with(requireContext())
+                        .load(user.getProfilePicture())
+                        .circleCrop()
+                        .into(profileImageView);
 
-                    db.runTransaction((Transaction.Function<Void>) transaction -> {
-                        DocumentReference userDocRef = db.collection("users").document(user.getId());
-                        DocumentSnapshot snapshot = transaction.get(userDocRef);
-                        Map<String, Object> existingReports = (Map<String, Object>) snapshot.get("reports");
-                        if (existingReports == null) {
-                            existingReports = new HashMap<>();
+                ratingBar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                    @Override
+                    public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                        if (fromUser) {
+                            lastRating = rating;  // Update the last rating whenever the user changes it
                         }
-                        existingReports.putAll(reportMap);
-                        transaction.update(userDocRef, "reports", existingReports);
-                        return null;
-                    }).addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Report added successfully", Toast.LENGTH_SHORT).show();
-                    }).addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Error submitting report", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            });
+                    }
+                });
+
+                starButton.setOnClickListener(v -> {
+                    if (user != null && lastRating > 0) {
+                        sendRatingToDatabase(currentUserId, lastRating);
+                    }
+                });
+
+                reportButton.setOnClickListener(view1 -> {
+                    if (selectedReport != null) {
+                        String reportKey = currentUserId + "_" + LocalDate.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")); // Create a unique key using the user ID and date
+                        Map<String, Object> reportMap = new HashMap<>();
+                        reportMap.put(reportKey, selectedReport.name());
+
+                        db.runTransaction((Transaction.Function<Void>) transaction -> {
+                            DocumentReference userDocRef = db.collection("users").document(user.getId());
+                            DocumentSnapshot snapshot = transaction.get(userDocRef);
+                            Map<String, Object> existingReports = (Map<String, Object>) snapshot.get("reports");
+                            if (existingReports == null) {
+                                existingReports = new HashMap<>();
+                            }
+                            existingReports.putAll(reportMap);
+                            transaction.update(userDocRef, "reports", existingReports);
+                            return null;
+                        }).addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Report added successfully", Toast.LENGTH_SHORT).show();
+                        }).addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Error submitting report", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
         }
         return view;
     }
@@ -168,7 +180,7 @@ public class OtherProfileFragment extends Fragment {
         DocumentReference userDocRef = db.collection("users").document(user.getId());
         db.runTransaction((Transaction.Function<Void>) transaction -> {
             DocumentSnapshot snapshot = transaction.get(userDocRef);
-            Map<String, Object> existingVoters = (Map<String, Object>) snapshot.get("voters");
+            Map<String, Float> existingVoters = (Map<String, Float>) snapshot.get("voters");
             if (existingVoters == null) {
                 existingVoters = new HashMap<>();
             }
@@ -176,11 +188,10 @@ public class OtherProfileFragment extends Fragment {
             transaction.update(userDocRef, "voters", existingVoters);
             return null;
         }).addOnSuccessListener(aVoid -> {
-            Toast.makeText(getContext(), "Rating submitted successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Rating submitted successfully:", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Error submitting rating", Toast.LENGTH_SHORT).show();
         });
     }
-
 }
 

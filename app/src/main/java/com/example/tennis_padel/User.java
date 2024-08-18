@@ -23,7 +23,6 @@ public class User implements Serializable {
     private String id, email, name, lastName, bio, profilePicture;
     private int wins, losses, ratingRank;
     private HashMap<String, Report> reports;
-    private float ratingRep;
     private ArrayList<Reservation> reservations;
     private HashMap<String, Float> voters;
     private Role role;
@@ -131,15 +130,11 @@ public class User implements Serializable {
             return 0;
         }
 
-        int sum = 0;
+        float sum = 0;
         for (Float value : voters.values()) {
             sum += value;
         }
         return sum / (float) voters.size();
-    }
-
-    public void setRatingRep(float ratingRep) {
-        this.ratingRep = ratingRep;
     }
 
     public int getRatingRank() {
