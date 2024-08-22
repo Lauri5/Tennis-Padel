@@ -41,7 +41,7 @@ public class User implements Serializable {
     public boolean makeReservation(Court court, Date dateTime, boolean isLesson) {
         if (court.isAvailable(dateTime)) {
             Reservation reservation = new Reservation(generateReservationId(), court, dateTime, isLesson);
-            reservation.addPlayer(this);
+            reservation.addPlayer(this.id);
             court.addReservation(reservation);
             reservations.add(reservation);
             return true;
