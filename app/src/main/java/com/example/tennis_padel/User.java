@@ -38,21 +38,6 @@ public class User implements Serializable {
     public User() {
     }
 
-    public boolean makeReservation(Court court, Date dateTime, boolean isLesson) {
-        if (court.isAvailable(dateTime)) {
-            Reservation reservation = new Reservation(generateReservationId(), court, dateTime, isLesson);
-            reservation.addPlayer(this.id);
-            court.addReservation(reservation);
-            reservations.add(reservation);
-            return true;
-        }
-        return false;
-    }
-
-    private String generateReservationId() {
-        return "RES-" + System.currentTimeMillis();  // just a simple example
-    }
-
     public Role getRole() {
         return role;
     }

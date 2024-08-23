@@ -64,18 +64,18 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
 
         public void bind(Court court, Context context, FragmentManager fragmentManager, Calendar selectedDateTime) {
             courtName.setText(court.getName());
-            CourtStatus status = court.getStatus();
+            CourtStatus status = court.getStatus(selectedDateTime.getTime());
 
             // Set background color based on court status
             switch (status) {
                 case AVAILABLE:
-                    cardView.setCardBackgroundColor(Color.parseColor("#B000962A"));  // Example color for AVAILABLE
+                    cardView.setCardBackgroundColor(Color.parseColor("#00FF00"));  // Green for AVAILABLE
                     break;
                 case RESERVED:
-                    cardView.setCardBackgroundColor(Color.parseColor("#B0FFE604"));  // Example color for RESERVED
+                    cardView.setCardBackgroundColor(Color.parseColor("#FF0000"));  // Red for RESERVED
                     break;
                 case SEMI_RESERVED:
-                    cardView.setCardBackgroundColor(Color.parseColor("#B0FF2626"));  // Example color for SEMI_RESERVED
+                    cardView.setCardBackgroundColor(Color.parseColor("#FFFF00"));  // Yellow for SEMI_RESERVED
                     break;
             }
 
@@ -90,9 +90,6 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
             // Load the image based on CourtType
             String imageName;
             switch (court.getType()) {
-                case TENNIS_INDOOR:
-                    imageName = "indoor.jpg";
-                    break;
                 case TENNIS_OUTDOOR:
                     imageName = "outdoor.jpg";
                     break;

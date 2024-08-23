@@ -1,75 +1,75 @@
 package com.example.tennis_padel;
 
-import com.google.android.material.textview.MaterialTextView;
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class Reservation {
+public class Reservation implements Serializable {
     private String id;
-    private Court court;
-    private Date dateTime;
-    private ArrayList<String> players;
+    private String courtId;  // Store the court's ID
+    private String dateTime;
+    private String playerId;  // Store player IDs
     private boolean isLesson;
-    private User teacher;
+    private String teacherId;  // Store the teacher's ID
 
-    public Reservation(String id, Court court, Date dateTime, boolean isLesson) {
+    // No-argument constructor required for Firestore serialization
+    public Reservation() {
+    }
+
+    public Reservation(String id, String courtId, String dateTime, boolean isLesson, String playerId) {
         this.id = id;
-        this.court = court;
+        this.courtId = courtId;
         this.dateTime = dateTime;
-        this.players = new ArrayList<>();
         this.isLesson = isLesson;
+        this.playerId = playerId;
     }
 
-    public void addPlayer(String user) {
-        if (!players.contains(user) && players.size() < 4) {
-            players.add(user);
-        }
-    }
-
-    public void updateCourtStatus() {
-        if (isFull()) {
-            court.setStatus(CourtStatus.RESERVED);
-        } else if (getPlayerCount() > 0) {
-            court.setStatus(CourtStatus.SEMI_RESERVED);
-        } else {
-            court.setStatus(CourtStatus.AVAILABLE);
-        }
-    }
-
-    public int getPlayerCount() {
-        return players.size();
-    }
-
-    public boolean isFull() {
-        return players.size() == 4;
-    }
-
+    // Getter and setter methods
     public String getId() {
         return id;
     }
 
-    public Court getCourt() {
-        return court;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public Date getDateTime() {
+    public String getCourtId() {
+        return courtId;
+    }
+
+    public void setCourtId(String courtId) {
+        this.courtId = courtId;
+    }
+
+    public String getDateTime() {
         return dateTime;
     }
 
-    public ArrayList<String> getPlayers() {
-        return players;
+    public void setDateTime(String dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    public String getPlayer() {
+        return playerId;
+    }
+
+    public void setPlayers(String players) {
+        this.playerId = playerId;
     }
 
     public boolean isLesson() {
         return isLesson;
     }
 
-    public User getTeacher() {
-        return teacher;
+    public void setLesson(boolean lesson) {
+        isLesson = lesson;
     }
 
-    public void setTeacher(User teacher) {
-        this.teacher = teacher;
+    public String getTeacherId() {
+        return teacherId;
+    }
+
+    public void setTeacherId(String teacherId) {
+        this.teacherId = teacherId;
     }
 }

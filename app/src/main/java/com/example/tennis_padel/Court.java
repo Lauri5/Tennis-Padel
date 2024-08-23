@@ -3,6 +3,8 @@ package com.example.tennis_padel;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 enum CourtStatus {
     AVAILABLE,
@@ -17,26 +19,19 @@ enum CourtType {
     PADEL_OUTDOOR
 }
 
-
 public class Court implements Serializable {
-    private String id;  // Unique identifier for the court
+    private String id;
     private String name;
-    private CourtStatus status;
     private CourtType type;
     private ArrayList<Reservation> reservations;
+
+    public Court(){
+        this.reservations = new ArrayList<>();
+    }
 
     public Court(String id, String name, CourtType type) {
         this.id = id;
         this.name = name;
-        this.status = CourtStatus.AVAILABLE;
-        this.type = type;
-        this.reservations = new ArrayList<>();
-    }
-
-    public Court(String id, String name, CourtType type, CourtStatus status) {
-        this.id = id;
-        this.name = name;
-        this.status = status;
         this.type = type;
         this.reservations = new ArrayList<>();
     }
@@ -51,25 +46,13 @@ public class Court implements Serializable {
     }
 
     public boolean isAvailable(Date dateTime) {
+        String formattedDate = formatDateTime(dateTime);
         for (Reservation reservation : reservations) {
-            if (reservation.getDateTime().equals(dateTime)) {
+            if (reservation.getDateTime().equals(formattedDate)) {
                 return false;
             }
         }
         return true;
-    }
-
-    public void addReservation(Reservation reservation) {
-        reservations.add(reservation);
-        reservation.updateCourtStatus();
-    }
-
-    public CourtStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(CourtStatus status) {
-        this.status = status;
     }
 
     public String getName() {
@@ -88,12 +71,45 @@ public class Court implements Serializable {
         this.type = type;
     }
 
+    public ArrayList<Reservation> getReservations() {
+        return reservations;
+    }
+
     public void setReservations(ArrayList<Reservation> reservations) {
         this.reservations = reservations;
     }
 
-    public ArrayList<Reservation> getReservations() {
-        return reservations;
+    public CourtStatus getStatus(Date dateTime) {
+        String formattedDate = formatDateTime(dateTime);
+        int playerCount = 0;
+        for (Reservation reservation : reservations) {
+            if (reservation.getDateTime().equals(formattedDate)) {
+                playerCount++;
+            }
+        }
+
+        if (playerCount == 0) {
+            return CourtStatus.AVAILABLE;
+        } else if (playerCount < 4) {
+            return CourtStatus.SEMI_RESERVED;
+        } else {
+            return CourtStatus.RESERVED;
+        }
+    }
+
+    public int getReservationsNumber(Date dateTime) {
+        String formattedDate = formatDateTime(dateTime);
+        int playerCount = 0;
+        for (Reservation reservation : reservations) {
+            if (reservation.getDateTime().equals(formattedDate)) {
+                playerCount++;
+            }
+        }
+        return playerCount;
+    }
+
+    private String formatDateTime(Date dateTime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
+        return dateFormat.format(dateTime);
     }
 }
-

@@ -26,7 +26,7 @@ public class SearchFragment extends Fragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        userAdapter = new UserAdapter(getContext(), null, this::openOtherProfileFragment); // Initialize with an empty list
+        userAdapter = new UserAdapter(getContext(), null, this::openOtherProfileFragment, false); // Initialize with an empty list
         recyclerView.setAdapter(userAdapter);
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);

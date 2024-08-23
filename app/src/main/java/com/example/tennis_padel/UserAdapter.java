@@ -14,6 +14,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.textview.MaterialTextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
@@ -24,20 +25,26 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     private List<User> userList, filteredUserList;
     private Context context;
+    private static boolean isRank;
     private OnItemClickListener listener;
 
-    public UserAdapter(Context context, List<User> userList, OnItemClickListener listener) {
+    public UserAdapter(Context context, List<User> userList, OnItemClickListener listener, boolean isRank) {
         this.context = context;
         this.userList = userList != null ? userList : new ArrayList<>(); // Ensure userList is not null
         this.filteredUserList = new ArrayList<>(this.userList);
         this.listener = listener;
-
+        this.isRank = isRank;
     }
 
     @NonNull
     @Override
     public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
+        View view;
+        if (!isRank)
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
+        else
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_rank, parent, false);
+
         return new UserViewHolder(view);
     }
 
@@ -45,19 +52,37 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = filteredUserList.get(position);
 
-        holder.nameTextView.setText(user.getName());
-        holder.lastNameTextView.setText(user.getLastName());
-        Glide.with(context)
-                .load(user.getProfilePicture())
-                .apply(RequestOptions.circleCropTransform())
-                .into(holder.imageView);
+        if (!isRank) {
+            holder.nameTextView.setText(user.getName());
+            holder.lastNameTextView.setText(user.getLastName());
+            Glide.with(context)
+                    .load(user.getProfilePicture())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(holder.imageView);
 
-        // Set click listener on the itemView
-        holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onItemClick(user);
-            }
-        });
+            // Set click listener on the itemView
+            holder.itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onItemClick(user);
+                }
+            });
+        } else {
+            holder.nameTextView.setText(user.getName() + " " + user.getLastName());
+            Glide.with(context)
+                    .load(user.getProfilePicture())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(holder.imageView);
+
+            // Set click listener on the itemView
+            holder.itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onItemClick(user);
+                }
+            });
+
+            // Convert the integer to a string before setting the text
+            holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
+        }
     }
 
     @Override
@@ -72,17 +97,32 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         MaterialTextView nameTextView, lastNameTextView;
         ImageView imageView;
 
+
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            nameTextView = itemView.findViewById(R.id.nameSearch);
-            lastNameTextView = itemView.findViewById(R.id.lastNameSearch);
-            imageView = itemView.findViewById(R.id.imageSearch);
+            if (!isRank){
+                nameTextView = itemView.findViewById(R.id.nameSearch);
+                lastNameTextView = itemView.findViewById(R.id.lastNameSearch);
+                imageView = itemView.findViewById(R.id.imageSearch);
+            }else{
+
+                nameTextView = itemView.findViewById(R.id.user_name);
+                imageView = itemView.findViewById(R.id.imageRank);
+                lastNameTextView = itemView.findViewById(R.id.user_rank);
+            }
         }
     }
 
     // Update the list of users
     public void setUserList(List<User> userList) {
         this.userList = userList != null ? userList : new ArrayList<>();
+        this.filteredUserList = new ArrayList<>(this.userList);
+        notifyDataSetChanged();
+    }
+
+    public void sortUserList(List<User> userList) {
+        Collections.sort(userList, (u1, u2) -> Float.compare(u2.getRatingRank(), u1.getRatingRank()));
+        this.userList = userList;
         this.filteredUserList = new ArrayList<>(this.userList);
         notifyDataSetChanged();
     }

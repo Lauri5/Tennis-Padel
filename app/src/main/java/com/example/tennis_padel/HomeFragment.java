@@ -1,6 +1,9 @@
 package com.example.tennis_padel;
 
 import com.google.android.material.textview.MaterialTextView;
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -15,34 +18,39 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.widget.Button;
 import android.util.Log;
+import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
 
     private RecyclerView courtRecyclerView;
-    private RecyclerView rankTableRecyclerView;
     private CourtAdapter courtAdapter;
-    private RankTableAdapter rankTableAdapter;
     private List<Court> courtList = new ArrayList<>();
-    private List<User> rankList = new ArrayList<>();
+    private MainViewModel viewModel;
     private FirebaseFirestore db;
     private MaterialTextView selectedDateTextView;
     private Calendar currentDate;
+    private UserAdapter userAdapter;
     private Button datePickerButton;
     private Button timePickerButton;
+    private FirebaseUser user;
 
     // Selected date and time
     private Calendar selectedDateTime = Calendar.getInstance();
+    private boolean isDateSelected = false;
+    private boolean isTimeSelected = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,28 +58,31 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         selectedDateTextView = view.findViewById(R.id.selected_date_textview);
-
+        user = FirebaseAuth.getInstance().getCurrentUser();
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
         // Initialize RecyclerViews
         courtRecyclerView = view.findViewById(R.id.courtView);
-        rankTableRecyclerView = view.findViewById(R.id.rankTableView);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         courtRecyclerView.setLayoutManager(gridLayoutManager);
-        rankTableRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         // Initialize buttons
         datePickerButton = view.findViewById(R.id.datePickerButton);
         timePickerButton = view.findViewById(R.id.timePickerButton);
+        timePickerButton.setEnabled(false); // Disable time picker initially
 
         // Set up adapters
         courtAdapter = new CourtAdapter(courtList, getParentFragmentManager(), selectedDateTime);
-        rankTableAdapter = new RankTableAdapter(rankList);
+
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        userAdapter = new UserAdapter(getContext(), new ArrayList<>(), null, true); // Start with an empty list
+        recyclerView.setAdapter(userAdapter);
 
         courtRecyclerView.setAdapter(courtAdapter);
-        rankTableRecyclerView.setAdapter(rankTableAdapter);
 
         // Date picker listener
         datePickerButton.setOnClickListener(v -> showDatePicker());
@@ -79,8 +90,6 @@ public class HomeFragment extends Fragment {
         // Time picker listener
         timePickerButton.setOnClickListener(v -> showTimePicker());
 
-        // Load initial data
-        loadCourtData();
         loadRankData();
 
         return view;
@@ -98,7 +107,13 @@ public class HomeFragment extends Fragment {
                     // Display the selected date
                     selectedDateTextView.setText("Selected Date: " + dayOfMonth + "/" + (month + 1) + "/" + year);
 
-                    loadCourtData();  // Reload courts based on selected date
+                    isDateSelected = true; // Mark date as selected
+                    timePickerButton.setEnabled(true); // Enable time picker now that date is selected
+
+                    // Load courts only if time is also selected
+                    if (isTimeSelected) {
+                        loadCourtData();
+                    }
                 },
                 currentDate.get(Calendar.YEAR),
                 currentDate.get(Calendar.MONTH),
@@ -116,9 +131,14 @@ public class HomeFragment extends Fragment {
                     selectedDateTime.set(Calendar.MINUTE, 0); // Ignore minutes, set them to 0
 
                     // Append the selected hour to the displayed date
-                    selectedDateTextView.setText("Selected Date: " + currentDate.get(Calendar.DAY_OF_MONTH) + "/" + currentDate.get(Calendar.MONTH) + "/" + currentDate.get(Calendar.YEAR) + " at " + hourOfDay + ":00");
+                    selectedDateTextView.setText("Selected Date: " + selectedDateTime.get(Calendar.DAY_OF_MONTH) + "/" + (selectedDateTime.get(Calendar.MONTH) + 1) + "/" + selectedDateTime.get(Calendar.YEAR) + " at " + hourOfDay + ":00");
 
-                    loadCourtData();  // Reload courts based on selected time
+                    isTimeSelected = true; // Mark time as selected
+
+                    // Load courts only if date is also selected
+                    if (isDateSelected) {
+                        loadCourtData();
+                    }
                 },
                 currentTime.get(Calendar.HOUR_OF_DAY),
                 0,  // Start at 0 minutes
@@ -128,45 +148,84 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadCourtData() {
-        db.collection("courts")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        courtList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String id = document.getId();
-                            String name = document.getString("name");
-                            String typeStr = document.getString("type");
-                            String statStr = document.getString("status");
-                            CourtStatus status = getStatusFromString(statStr);
-                            CourtType type;
-                            switch (typeStr){
-                                case "TENNIS_INDOOR":
-                                    type = CourtType.TENNIS_INDOOR;
-                                    break;
-                                case "PADEL_OUTDOOR":
-                                    type = CourtType.PADEL_OUTDOOR;
-                                    break;
-                                case "PADEL_INDOOR":
-                                    type = CourtType.PADEL_INDOOR;
-                                    break;
-                                default:
-                                    type = CourtType.TENNIS_OUTDOOR;
-                                    break;
-                            }
+        // Check if the selected date is in the future
+        Date currentDate = new Date();
+        if (!selectedDateTime.getTime().after(currentDate)) {
+            Toast.makeText(getContext(), "Please select a future date.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                            Court court = new Court(id, name, type, status);
-                            court.setReservations(loadReservations(document)); // Method to load reservations
+        // Check if the selected time is between 9 AM and 9 PM
+        int selectedHour = selectedDateTime.get(Calendar.HOUR_OF_DAY);
+        if (selectedHour < 9 || selectedHour > 21) {
+            Toast.makeText(getContext(), "Please select a time between 9 AM and 9 PM.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                            if (isCourtAvailable(court)) { // Check if court is available in the selected time range
-                                courtList.add(court);
-                            }
+        // Get current user and load courts if no conflict
+        FirebaseUser firebaseUser = viewModel.getCurrentUser();
+        if (firebaseUser != null) {
+            db.collection("users").document(firebaseUser.getUid()).get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    User currentUser = documentSnapshot.toObject(User.class);
+                    if (currentUser != null) {
+                        // Ensure the reservations list is initialized
+                        if (currentUser.getReservations() == null) {
+                            currentUser.setReservations(new ArrayList<>()); // Initialize if null
                         }
-                        courtAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("HomeFragment", "Error getting courts", task.getException());
+
+                        boolean hasReservation = currentUser.getReservations().stream()
+                                .anyMatch(reservation -> reservation.getDateTime().equals(formatDateTime(selectedDateTime)));
+
+                        if (hasReservation) {
+                            Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        db.collection("courts")
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        courtList.clear();
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                            String id = document.getId();
+                                            String name = document.getString("name");
+                                            String typeStr = document.getString("type");
+
+                                            CourtType type;
+                                            switch (typeStr) {
+                                                case "TENNIS_INDOOR":
+                                                    type = CourtType.TENNIS_INDOOR;
+                                                    break;
+                                                case "PADEL_OUTDOOR":
+                                                    type = CourtType.PADEL_OUTDOOR;
+                                                    break;
+                                                case "PADEL_INDOOR":
+                                                    type = CourtType.PADEL_INDOOR;
+                                                    break;
+                                                default:
+                                                    type = CourtType.TENNIS_OUTDOOR;
+                                                    break;
+                                            }
+
+                                            Court court = new Court(id, name, type);
+                                            court.setReservations(loadReservations(document));
+
+                                            // Dynamically calculate the status based on reservations
+                                            CourtStatus status = court.getStatus(selectedDateTime.getTime());
+
+                                            // Only add available or semi-reserved courts to the list
+                                            if (status == CourtStatus.AVAILABLE || status == CourtStatus.SEMI_RESERVED) {
+                                                courtList.add(court);
+                                            }
+                                        }
+                                        courtAdapter.notifyDataSetChanged();
+                                    }
+                                });
                     }
-                });
+                }
+            });
+        }
     }
 
     private ArrayList<Reservation> loadReservations(QueryDocumentSnapshot courtDocument) {
@@ -175,18 +234,22 @@ public class HomeFragment extends Fragment {
 
         if (reservationsData != null) {
             for (Map<String, Object> reservationData : reservationsData) {
-                Date dateTime = (Date) reservationData.get("dateTime");
-                boolean isLesson = (Boolean) reservationData.get("isLesson");
-                String reservationId = (String) reservationData.get("id");
+                // Since dateTime is stored as a String, retrieve it directly
+                String dateTimeStr = (String) reservationData.get("dateTime");
 
-                // Assuming `Court` is already initialized with name, type, etc.
-                Court court = new Court(courtDocument.getId(),courtDocument.getString("name"), CourtType.valueOf(courtDocument.getString("type")));
+                // Safely retrieve the boolean value for isLesson
+                Boolean isLessonObj = (Boolean) reservationData.get("isLesson");
+                boolean isLesson = isLessonObj != null ? isLessonObj : false;
+
+                String reservationId = (String) reservationData.get("id");
+                String playerId = (String) reservationData.get("playerId");
 
                 Reservation reservation = new Reservation(
                         reservationId,
-                        court,
-                        dateTime,
-                        isLesson
+                        courtDocument.getId(),
+                        dateTimeStr, // Use the dateTime as a String
+                        isLesson,
+                        playerId
                 );
 
                 reservations.add(reservation);
@@ -196,63 +259,25 @@ public class HomeFragment extends Fragment {
         return reservations;
     }
 
-    private boolean isCourtAvailable(Court court) {
-        // Check if the court has any reservations that overlap with the selected date and time
-        for (Reservation reservation : court.getReservations()) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(reservation.getDateTime());
-
-            if (cal.get(Calendar.YEAR) == selectedDateTime.get(Calendar.YEAR) &&
-                    cal.get(Calendar.MONTH) == selectedDateTime.get(Calendar.MONTH) &&
-                    cal.get(Calendar.DAY_OF_MONTH) == selectedDateTime.get(Calendar.DAY_OF_MONTH) &&
-                    cal.get(Calendar.HOUR_OF_DAY) == selectedDateTime.get(Calendar.HOUR_OF_DAY) &&
-                    cal.get(Calendar.MINUTE) == selectedDateTime.get(Calendar.MINUTE)) {
-                return false; // Court is not available at the selected date and time
-            }
-        }
-        return true; // Court is available at the selected date and time
-    }
-
-    private CourtStatus getStatusFromString(String statusStr) {
-        switch (statusStr) {
-            case "AVAILABLE":
-                return CourtStatus.AVAILABLE;
-            case "RESERVED":
-                return CourtStatus.RESERVED;
-            case "SEMI_RESERVED":
-                return CourtStatus.SEMI_RESERVED;
-            default:
-                return CourtStatus.AVAILABLE;
-        }
-    }
-
     private void loadRankData() {
-        db.collection("users")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        rankList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            String name = document.getString("name");
-                            String profilePictureUrl = document.getString("profilePicture");
-                            String lastName = document.getString("lastName");
-                            int wins = ((Number) document.get("wins")).intValue();
-                            int losses = ((Number) document.get("losses")).intValue();
+        viewModel.loadAllUsers();
 
-                            User user = new User();
-                            user.setName(name);
-                            user.setLastName(lastName);
-                            user.setProfilePicture(profilePictureUrl);
-                            user.setWins(wins);
-                            user.setLosses(losses);
-                            rankList.add(user);
-                        }
+        viewModel.getAllUsersLiveData().observe(getViewLifecycleOwner(), users -> {
+            if (users != null) {
+                userAdapter.sortUserList(users);
+            }
+        });
+    }
 
-                        // Now sort the list by rank in descending order
-                        Collections.sort(rankList, (u1, u2) -> Float.compare(u2.getRatingRank(), u1.getRatingRank())); // Sorting by rank, highest first
+    private String formatDateTime(Date dateTime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
+        String formattedDate = dateFormat.format(dateTime);
+        return formattedDate;
+    }
 
-                        rankTableAdapter.notifyDataSetChanged();
-                    }
-                });
+    private String formatDateTime(Calendar dateTime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
+        String formattedDate = dateFormat.format(dateTime.getTime());
+        return formattedDate;
     }
 }
