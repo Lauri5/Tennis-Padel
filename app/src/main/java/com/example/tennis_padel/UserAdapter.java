@@ -50,41 +50,54 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
+        // Retrieve the user at the given position from the filtered list
         User user = filteredUserList.get(position);
 
+        // Extract the name and last name to handle possible null values safely
         String name = user.getName();
         String lastName = user.getLastName();
 
+        // Condition to check and set the user's display name and last name based on the rank flag
         if (!isRank) {
+            // Handle the case where the name might be empty or null
             if ((name == null || name.isEmpty()) && lastName != null){
+                // Remove whitespace and set last name as the display name if no first name is provided
                 holder.nameTextView.setText(lastName.trim());
             } else {
+                // Set the name and last name in their respective TextViews, handling nulls
                 holder.nameTextView.setText(name != null ? name : "");
                 holder.lastNameTextView.setText(lastName != null ? lastName : "");
             }
         } else {
+            // Handle the case for ranked users differently
             if (name == null || name.isEmpty()) {
+                // Set trimmed last name if name is absent
                 holder.nameTextView.setText(lastName != null ? lastName.trim() : "");
             } else {
+                // Concatenate name and last name for ranked users, handling nulls
                 holder.nameTextView.setText((name + " " + (lastName != null ? lastName : "")).trim());
                 holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
             }
         }
 
+        // Load and set the user's profile picture using Glide with circle crop transformation
         Glide.with(context)
                 .load(user.getProfilePicture())
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
 
+        // Set a click listener on the entire user item view
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(user);
             }
         });
 
+        // Fallback to displaying the username extracted from the email if both name and last name are absent
         if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())){
             String email = user.getEmail();
             if (email != null) {
+                // Split the email at "@" and use the first part as the display name
                 String[] parts = email.split("@");
                 holder.nameTextView.setText(parts[0]);
             }
