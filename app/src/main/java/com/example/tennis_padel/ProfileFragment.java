@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -49,6 +50,7 @@ public class ProfileFragment extends Fragment {
         loadUserProfile();
         setupEditButton(view.findViewById(R.id.edit));
         setupLogoutButton(view.findViewById(R.id.logout));
+        notificationButton(view.findViewById(R.id.notifications));
     }
 
     private void setupViews(View view) {
@@ -116,6 +118,15 @@ public class ProfileFragment extends Fragment {
                             bio.getText().toString().trim(), currentUser.getProfilePicture());
                 }
             }
+        });
+    }
+
+    private void notificationButton(MaterialButton notificationButton) {
+        notificationButton.setOnClickListener(view -> {
+            NotificationFragment notificationFragment = new NotificationFragment();
+            FragmentTransaction fragmentTransaction = requireActivity().getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.replace(R.id.fragment_container, notificationFragment)
+                    .commit();
         });
     }
 

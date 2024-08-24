@@ -1,16 +1,26 @@
 package com.example.tennis_padel;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,7 +28,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
     MainViewModel viewModel;
@@ -28,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -46,6 +59,98 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setupNavigation();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Check if the intent contains the fragment to open
+        if (getIntent().hasExtra("openFragment")) {
+            String fragmentName = getIntent().getStringExtra("openFragment");
+            if ("NotificationFragment".equals(fragmentName)) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new NotificationFragment())
+                        .commit();
+            }
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // Listen for invitations where the current user is the invitee
+        db.collection("invitations")
+                .whereEqualTo("inviteeId", currentUserId)
+                .whereEqualTo("status", "pending")
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Log.w("MainActivity", "Listen failed.", e);
+                        return;
+                    }
+
+                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                        if (dc.getType() == DocumentChange.Type.ADDED) {
+                            String court = dc.getDocument().getString("court");
+                            String time = dc.getDocument().getString("time");
+
+                            // Show a notification to the user
+                            showNotification(court, time);
+
+                            // Update the status to "notified" to prevent duplicate notifications
+                            dc.getDocument().getReference().update("status", "notified");
+                        }
+                    }
+                });
+    }
+
+    private void showNotification(String court, String time) {
+        // Step 1: Create a Notification Channel (for Android 8.0 and above)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "InviteNotificationChannel";
+            String description = "Channel for Court Invitation Notifications";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("InviteNotificationChannel", name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("openFragment", "NotificationFragment");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        // Here we add the FLAG_IMMUTABLE flag
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        // Step 2: Build the notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "InviteNotificationChannel")
+                .setSmallIcon(R.drawable.ic_notification)  // Replace with your notification icon
+                .setContentTitle("You've been invited to play!")
+                .setContentText("Court: " + court + " at " + time)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            return;
+        }
+        // Step 3: Show the notification
+        notificationManager.notify(2, builder.build());
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you can post the notification now
+                // Consider retrying the notification or a test notification here if needed
+            }
+        }
     }
 
     private void setupNavigation() {

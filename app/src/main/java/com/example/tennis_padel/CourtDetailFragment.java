@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -24,9 +25,9 @@ import com.google.firebase.storage.StorageReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
 
 public class CourtDetailFragment extends Fragment {
     private Court court;
@@ -82,7 +83,7 @@ public class CourtDetailFragment extends Fragment {
         courtStatus = view.findViewById(R.id.court_status);
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        userAdapter = new UserAdapter(getContext(), new ArrayList<>(), this::inviteUser, true);
+        userAdapter = new UserAdapter(getContext(), new ArrayList<>(), user -> inviteUser(user, court), true);
         recyclerView.setAdapter(userAdapter);
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         if (court != null) {
@@ -221,8 +222,80 @@ public class CourtDetailFragment extends Fragment {
         }
     }
 
-    private void inviteUser(User user) {
-        Toast.makeText(requireContext(), "User " + user.getName() + " " + user.getLastName() + " invited", Toast.LENGTH_SHORT).show();
+    private void inviteUser(User user, Court court) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String formattedDateTime = formatDateTime(selectedDateTime); // Assuming this method formats the Date
+
+        // Step 1: Check for existing reservations
+        db.collection("users").document(user.getId())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    User existingUser = documentSnapshot.toObject(User.class);
+                    if (existingUser != null) {
+                        boolean hasReservation = false;
+                        if (existingUser.getReservations() != null) {
+                            for (Reservation reservation : existingUser.getReservations()) {
+                                if (reservation.getDateTime().equals(formattedDateTime)) {
+                                    hasReservation = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (hasReservation) {
+                            Toast.makeText(getContext(), "User already has a reservation at this time.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        // Step 2: Check for any existing invitations (not just pending)
+                        db.collection("invitations")
+                                .whereEqualTo("inviteeId", user.getId())
+                                .whereEqualTo("time", formattedDateTime)
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        if (!task.getResult().isEmpty()) {
+                                            Toast.makeText(getContext(), "User already has an invitation for this time.", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
+
+                                        // Step 3: Send the invitation since no conflicts were found
+                                        sendInvitation(user, court, formattedDateTime);
+                                    } else {
+                                        Toast.makeText(getContext(), "Error checking invitations.", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    } else {
+                        Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error checking reservations.", Toast.LENGTH_SHORT).show();
+                    Log.e("CourtDetailFragment", "Error fetching user data", e);
+                });
+    }
+
+    private void sendInvitation(User user, Court court, String formattedDateTime) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Create an invitation object
+        Invitation invitation = new Invitation();
+        invitation.setCourtId(court.getId());
+        invitation.setCourtName(court.getName());
+        invitation.setTime(formattedDateTime);
+        invitation.setInviterId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        invitation.setInviteeId(user.getId());
+        invitation.setStatus("pending");
+
+        // Store the invitation in Firestore
+        db.collection("invitations").add(invitation)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(getContext(), "Invitation sent to " + user.getName(), Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Failed to send invitation", Toast.LENGTH_SHORT).show();
+                    Log.e("CourtDetailFragment", "Error sending invitation", e);
+                });
     }
 
     public static CourtDetailFragment newInstance(Court court, Date dateTime) {

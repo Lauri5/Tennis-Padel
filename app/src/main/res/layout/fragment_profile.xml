@@ -223,4 +223,14 @@
         app:layout_constraintTop_toBottomOf="@+id/ratingBar"
         app:layout_constraintVertical_bias="0.15" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/notifications"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ic_notification"
+        app:backgroundTint="@color/black"
+        app:layout_constraintBottom_toBottomOf="@+id/lossesNumberOther"
+        app:layout_constraintEnd_toEndOf="@+id/nameProfile"
+        app:layout_constraintTop_toBottomOf="@+id/winsNumberOther" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
