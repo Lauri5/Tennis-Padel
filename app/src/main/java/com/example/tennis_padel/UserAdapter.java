@@ -76,8 +76,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             } else {
                 // Concatenate name and last name for ranked users, handling nulls
                 holder.nameTextView.setText((name + " " + (lastName != null ? lastName : "")).trim());
-                holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
             }
+            holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
         }
 
         // Load and set the user's profile picture using Glide with circle crop transformation
