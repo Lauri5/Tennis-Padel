@@ -53,35 +53,37 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         User user = filteredUserList.get(position);
 
         if (!isRank) {
-            holder.nameTextView.setText(user.getName());
-            holder.lastNameTextView.setText(user.getLastName());
-            Glide.with(context)
-                    .load(user.getProfilePicture())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(holder.imageView);
-
-            // Set click listener on the itemView
-            holder.itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemClick(user);
-                }
-            });
+            // if no name is provided, remove white space from last name
+            if (user.getName().isEmpty() && !user.getLastName().isEmpty()){
+                holder.nameTextView.setText(user.getLastName().trim());
+            }else{
+                holder.nameTextView.setText(user.getName());
+                holder.lastNameTextView.setText(user.getLastName());
+            }
         } else {
-            holder.nameTextView.setText(user.getName() + " " + user.getLastName());
-            Glide.with(context)
-                    .load(user.getProfilePicture())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(holder.imageView);
-
-            // Set click listener on the itemView
-            holder.itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemClick(user);
-                }
-            });
-
-            // Convert the integer to a string before setting the text
+            // if no name is provided, remove white space from last name
+            if (user.getName().isEmpty() && !user.getLastName().isEmpty())
+                holder.nameTextView.setText(user.getLastName().trim());
+            else
+                holder.nameTextView.setText(user.getName() + " " + user.getLastName());
             holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
+        }
+        Glide.with(context)
+                .load(user.getProfilePicture())
+                .apply(RequestOptions.circleCropTransform())
+                .into(holder.imageView);
+
+        // Set click listener on the itemView
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(user);
+            }
+        });
+
+        // If no name or last name is provided, set the email as the name
+        if (user.getName().isEmpty() && user.getLastName().isEmpty()){
+            String[] email = user.getEmail().split("@");
+            holder.nameTextView.setText(email[0]);
         }
     }
 
