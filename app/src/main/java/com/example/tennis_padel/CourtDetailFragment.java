@@ -225,6 +225,11 @@ public class CourtDetailFragment extends Fragment {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String formattedDateTime = formatDateTime(selectedDateTime); // Assuming this method formats the Date
 
+        if (user.getId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+            Toast.makeText(getContext(), "You cannot invite yourself.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         // Step 1: Check for existing reservations
         db.collection("users").document(user.getId())
                 .get()

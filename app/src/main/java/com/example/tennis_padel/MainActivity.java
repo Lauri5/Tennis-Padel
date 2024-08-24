@@ -142,17 +142,6 @@ public class MainActivity extends AppCompatActivity {
         notificationManager.notify(2, builder.build());
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, you can post the notification now
-                // Consider retrying the notification or a test notification here if needed
-            }
-        }
-    }
-
     private void setupNavigation() {
         BottomNavigationView navView = findViewById(R.id.nav_view);
         navView.setOnItemSelectedListener(item -> {
