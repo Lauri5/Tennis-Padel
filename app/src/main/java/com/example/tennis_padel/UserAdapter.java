@@ -52,38 +52,42 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = filteredUserList.get(position);
 
+        String name = user.getName();
+        String lastName = user.getLastName();
+
         if (!isRank) {
-            // if no name is provided, remove white space from last name
-            if (user.getName().isEmpty() && !user.getLastName().isEmpty()){
-                holder.nameTextView.setText(user.getLastName().trim());
-            }else{
-                holder.nameTextView.setText(user.getName());
-                holder.lastNameTextView.setText(user.getLastName());
+            if ((name == null || name.isEmpty()) && lastName != null){
+                holder.nameTextView.setText(lastName.trim());
+            } else {
+                holder.nameTextView.setText(name != null ? name : "");
+                holder.lastNameTextView.setText(lastName != null ? lastName : "");
             }
         } else {
-            // if no name is provided, remove white space from last name
-            if (user.getName().isEmpty() && !user.getLastName().isEmpty())
-                holder.nameTextView.setText(user.getLastName().trim());
-            else
-                holder.nameTextView.setText(user.getName() + " " + user.getLastName());
-            holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
+            if (name == null || name.isEmpty()) {
+                holder.nameTextView.setText(lastName != null ? lastName.trim() : "");
+            } else {
+                holder.nameTextView.setText((name + " " + (lastName != null ? lastName : "")).trim());
+                holder.lastNameTextView.setText(String.valueOf(user.getRatingRank()));
+            }
         }
+
         Glide.with(context)
                 .load(user.getProfilePicture())
                 .apply(RequestOptions.circleCropTransform())
                 .into(holder.imageView);
 
-        // Set click listener on the itemView
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(user);
             }
         });
 
-        // If no name or last name is provided, set the email as the name
-        if (user.getName().isEmpty() && user.getLastName().isEmpty()){
-            String[] email = user.getEmail().split("@");
-            holder.nameTextView.setText(email[0]);
+        if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())){
+            String email = user.getEmail();
+            if (email != null) {
+                String[] parts = email.split("@");
+                holder.nameTextView.setText(parts[0]);
+            }
         }
     }
 
