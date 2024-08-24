@@ -3,11 +3,16 @@ package com.example.tennis_padel;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.List;
 
@@ -43,18 +48,42 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView invitationDetails;
-        private final Button acceptButton;
-        private final Button declineButton;
+        private final MaterialButton acceptButton, declineButton;
+        private final ImageView courtImage;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             invitationDetails = itemView.findViewById(R.id.invitation_details);
             acceptButton = itemView.findViewById(R.id.accept_button);
             declineButton = itemView.findViewById(R.id.decline_button);
+            courtImage = itemView.findViewById(R.id.court_image);
         }
 
         public void bind(Invitation invitation, OnAcceptClickListener acceptClickListener, OnDeclineClickListener declineClickListener) {
             invitationDetails.setText("Court: " + invitation.getCourtName() + "\nTime: " + invitation.getTime());
+
+            String imageName;
+            switch (invitation.getCourtType()) {
+                case "TENNIS_OUTDOOR":
+                    imageName = "outdoor.jpg";
+                    break;
+                case "PADEL_INDOOR":
+                    imageName = "padel_indoor.jpg";
+                    break;
+                case "PADEL_OUTDOOR":
+                    imageName = "padel_outdoor.jpg";
+                    break;
+                default:
+                    imageName = "indoor.jpg";
+                    break;
+            }
+
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(imageName);
+
+            // Use Glide to load the image from Firebase Storage
+            storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                Glide.with(itemView.getContext()).load(uri).circleCrop().into(courtImage);
+            });
 
             acceptButton.setOnClickListener(v -> acceptClickListener.onAcceptClick(invitation));
             declineButton.setOnClickListener(v -> declineClickListener.onDeclineClick(invitation));

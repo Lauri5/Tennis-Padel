@@ -1,35 +1,52 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="6dp">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/invitation_details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Court: Court 1\nTime: 2024-08-24 10:00 AM"/>
+        android:text="Court: Court 1\nTime: 2024-08-24 10:00 AM"
+        android:textSize="20sp" />
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
+        android:gravity="start"
         android:paddingTop="8dp">
 
-        <Button
+        <ImageView
+            android:id="@+id/court_image"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/accept_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Accept"/>
+            android:text="Accept"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/decline_button"
+            app:layout_constraintHorizontal_bias="0.834"
+            app:layout_constraintStart_toEndOf="@+id/court_image"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/decline_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Decline"
-            android:layout_marginStart="8dp"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

@@ -269,15 +269,8 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private String formatDateTime(Date dateTime) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
-        String formattedDate = dateFormat.format(dateTime);
-        return formattedDate;
-    }
-
     private String formatDateTime(Calendar dateTime) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
-        String formattedDate = dateFormat.format(dateTime.getTime());
-        return formattedDate;
+        return dateFormat.format(dateTime.getTime());
     }
 }

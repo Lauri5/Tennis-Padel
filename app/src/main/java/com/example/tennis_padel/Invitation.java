@@ -2,13 +2,7 @@ package com.example.tennis_padel;
 
 public class Invitation {
 
-    private String id;
-    private String courtId;
-    private String courtName;
-    private String time;
-    private String inviterId;
-    private String inviteeId;
-    private String status;
+    private String id, courtId, courtName, time, inviterId, status,  inviteeId, courtType;
 
     // Constructor, getters, and setters
 
@@ -59,15 +53,13 @@ public class Invitation {
         return inviteeId;
     }
 
-    public void setInviteeId(String inviteeId) {
-        this.inviteeId = inviteeId;
-    }
+    public void setInviteeId(String inviteeId) { this.inviteeId = inviteeId; }
 
-    public String getStatus() {
-        return status;
-    }
+    public String getCourtType() { return courtType; }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    public void setCourtType(String courtType) { this.courtType = courtType; }
+
+    public String getStatus() { return status; }
+
+    public void setStatus(String status) { this.status = status; }
 }

@@ -2,18 +2,18 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="Tennel">
+      <SelectionState runConfigName="Tennis-Padel">
         <option name="selectionMode" value="DIALOG" />
         <DialogSelection>
           <targets>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="Default" identifier="serial=emulator-5554;connection=9d919096" />
+                <DeviceId pluginId="PhysicalDevice" identifier="serial=AF2SVB3621002896" />
               </handle>
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="PhysicalDevice" identifier="serial=AF2SVB3621002896" />
+                <DeviceId pluginId="Default" identifier="serial=emulator-5554;connection=7acfe837" />
               </handle>
             </Target>
           </targets>

@@ -143,7 +143,6 @@ public class CourtDetailFragment extends Fragment {
         }
 
         String userId = firebaseUser.getUid();
-        String formattedDateTime = formatDateTime(selectedDateTime);
         String reservationId = generateReservationId(userId, selectedDateTime);
 
         Log.d("CourtDetailFragment", "Attempting to join court with ID: " + reservationId);
@@ -283,6 +282,7 @@ public class CourtDetailFragment extends Fragment {
         invitation.setCourtId(court.getId());
         invitation.setCourtName(court.getName());
         invitation.setTime(formattedDateTime);
+        invitation.setCourtType(court.getType().toString());
         invitation.setInviterId(FirebaseAuth.getInstance().getCurrentUser().getUid());
         invitation.setInviteeId(user.getId());
         invitation.setStatus("pending");
