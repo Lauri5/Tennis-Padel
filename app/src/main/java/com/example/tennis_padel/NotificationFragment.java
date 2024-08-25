@@ -121,7 +121,6 @@ public class NotificationFragment extends Fragment {
     }
 
     private void addReservation(Invitation invitation) {
-        // Check if the courtId is null
         if (invitation.getCourtId() == null) {
             Log.e("NotificationFragment", "Error: Court ID is null");
             Toast.makeText(getContext(), "Error: Court ID is missing", Toast.LENGTH_SHORT).show();
@@ -130,68 +129,96 @@ public class NotificationFragment extends Fragment {
 
         String formattedDateTime = invitation.getTime();
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String reservationId = userId + "-" + formattedDateTime;
-
-        Reservation newReservation = new Reservation(
-                reservationId,
-                invitation.getCourtId(),
-                formattedDateTime,
-                false, // Assuming this means "is not a lesson"
-                userId
-        );
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Start a Firestore batch operation
-        WriteBatch batch = db.batch();
-
-        // Reference to the court document
-        DocumentReference courtRef = db.collection("courts").document(invitation.getCourtId());
-        courtRef.get().addOnSuccessListener(documentSnapshot -> {
+        // Check if the user already has a reservation for this court and date
+        db.collection("courts").document(invitation.getCourtId()).get().addOnSuccessListener(documentSnapshot -> {
             if (documentSnapshot.exists()) {
                 Court court = documentSnapshot.toObject(Court.class);
                 if (court != null) {
-                    // Initialize the reservations list if it's null
                     if (court.getReservations() == null) {
                         court.setReservations(new ArrayList<>());
                     }
+
+                    // Check if the user is already booked for this date/time
+                    for (Reservation reservation : court.getReservations()) {
+                        if (reservation.getDateTime().equals(formattedDateTime) && userId.equals(reservation.getPlayer())) {
+                            Toast.makeText(getContext(), "You are already booked for this match.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
+
+                    // Add the new reservation
+                    Reservation newReservation = new Reservation(
+                            userId + "-" + formattedDateTime,
+                            invitation.getCourtId(),
+                            formattedDateTime,
+                            false,
+                            userId
+                    );
+
                     // Add the new reservation to the court's reservation list
                     court.getReservations().add(newReservation);
-                    batch.set(courtRef, court);
+
+                    // Update only the reservations array in the court document
+                    db.collection("courts").document(invitation.getCourtId())
+                            .update("reservations", FieldValue.arrayUnion(newReservation))
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("NotificationFragment", "Reservation added successfully to the court.");
+                                addReservationToUser(userId, newReservation);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("NotificationFragment", "Error adding reservation to the court: ", e);
+                                Toast.makeText(getContext(), "Failed to add reservation to the court", Toast.LENGTH_SHORT).show();
+                            });
                 }
             }
-
-            // Reference to the user document
-            DocumentReference userRef = db.collection("users").document(userId);
-            userRef.get().addOnSuccessListener(userSnapshot -> {
-                if (userSnapshot.exists()) {
-                    User user = userSnapshot.toObject(User.class);
-                    if (user != null) {
-                        // Initialize the reservations list if it's null
-                        if (user.getReservations() == null) {
-                            user.setReservations(new ArrayList<>());
-                        }
-                        // Add the new reservation to the user's reservation list
-                        user.getReservations().add(newReservation);
-                        batch.set(userRef, user);
-                    }
-                }
-
-                // Commit the batch operation
-                batch.commit().addOnSuccessListener(aVoid -> {
-                    Log.d("NotificationFragment", "Reservation added successfully to both court and user.");
-                    Toast.makeText(getContext(), "Reservation added successfully!", Toast.LENGTH_SHORT).show();
-                }).addOnFailureListener(e -> {
-                    Log.e("NotificationFragment", "Error adding reservation: ", e);
-                    Toast.makeText(getContext(), "Failed to add reservation", Toast.LENGTH_SHORT).show();
-                });
-            }).addOnFailureListener(e -> {
-                Log.e("NotificationFragment", "Error fetching user: ", e);
-                Toast.makeText(getContext(), "Failed to fetch user data", Toast.LENGTH_SHORT).show();
-            });
         }).addOnFailureListener(e -> {
             Log.e("NotificationFragment", "Error fetching court: ", e);
             Toast.makeText(getContext(), "Failed to fetch court data", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void addReservationToUser(String userId, Reservation newReservation) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // Check if the user already has a reservation for this court and date
+        userRef.get().addOnSuccessListener(userSnapshot -> {
+            if (userSnapshot.exists()) {
+                User user = userSnapshot.toObject(User.class);
+                if (user != null) {
+                    if (user.getReservations() == null) {
+                        user.setReservations(new ArrayList<>());
+                    }
+
+                    // Ensure the user doesn't already have this reservation (as a safety check)
+                    for (Reservation reservation : user.getReservations()) {
+                        if (reservation.getDateTime().equals(newReservation.getDateTime()) && reservation.getCourtId().equals(newReservation.getCourtId())) {
+                            Log.d("NotificationFragment", "User already has this reservation.");
+                            return;
+                        }
+                    }
+
+                    // Add the new reservation to the user's reservation list
+                    user.getReservations().add(newReservation);
+
+                    // Update only the reservations array in the user document
+                    userRef.update("reservations", FieldValue.arrayUnion(newReservation))
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("NotificationFragment", "Reservation added successfully to the user.");
+                                Toast.makeText(getContext(), "Reservation added successfully!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("NotificationFragment", "Error adding reservation to the user: ", e);
+                                Toast.makeText(getContext(), "Failed to add reservation to the user", Toast.LENGTH_SHORT).show();
+                            });
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("NotificationFragment", "Error fetching user: ", e);
+            Toast.makeText(getContext(), "Failed to fetch user data", Toast.LENGTH_SHORT).show();
         });
     }
 }

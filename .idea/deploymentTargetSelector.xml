@@ -13,7 +13,7 @@
             </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="Default" identifier="serial=emulator-5554;connection=b45f5c6d" />
+                <DeviceId pluginId="Default" identifier="serial=emulator-5554;connection=3d2311e3" />
               </handle>
             </Target>
           </targets>

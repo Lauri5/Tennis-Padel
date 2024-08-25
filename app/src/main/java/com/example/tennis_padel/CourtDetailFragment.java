@@ -154,7 +154,7 @@ public class CourtDetailFragment extends Fragment {
                     if (task.isSuccessful()) {
                         if (task.getResult().isEmpty()) {
                             Log.d("CourtDetailFragment", "No existing reservation found, creating new one.");
-                            createReservation(userId, reservationId);
+                            createReservation(reservationId);
                         } else {
                             Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
                         }
@@ -164,8 +164,9 @@ public class CourtDetailFragment extends Fragment {
                 });
     }
 
-    private void createReservation(String userId, String reservationId) {
+    private void createReservation(String reservationId) {
         String formattedDateTime = formatDateTime(selectedDateTime);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         Reservation newReservation = new Reservation(
                 reservationId,
