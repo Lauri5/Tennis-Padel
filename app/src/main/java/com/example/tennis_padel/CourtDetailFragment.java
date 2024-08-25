@@ -18,16 +18,17 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class CourtDetailFragment extends Fragment {
     private Court court;
@@ -55,8 +56,7 @@ public class CourtDetailFragment extends Fragment {
         initializeUI(view);
 
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchView);
-        searchView.setIconifiedByDefault(false); // Make sure it's fully expanded
-        // Filter the list as the user types in the search bar
+        searchView.setIconifiedByDefault(false);
         searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -110,7 +110,6 @@ public class CourtDetailFragment extends Fragment {
     private void loadCourtDetails() {
         String formattedDateTime = formatDateTime(selectedDateTime);
 
-        // Get the court's reservations
         db.collection("courts").document(court.getId())
                 .get()
                 .addOnCompleteListener(task -> {
@@ -119,14 +118,12 @@ public class CourtDetailFragment extends Fragment {
                         if (court != null) {
                             int playerCount = 0;
 
-                            // Filter reservations for the selected dateTime
                             for (Reservation reservation : court.getReservations()) {
                                 if (reservation.getDateTime().equals(formattedDateTime)) {
                                     playerCount++;
                                 }
                             }
 
-                            // Update UI with the number of players
                             courtStatus.setText("There are currently " + playerCount + "/4 players in this court.");
                         }
                     } else {
@@ -145,21 +142,14 @@ public class CourtDetailFragment extends Fragment {
         String userId = firebaseUser.getUid();
         String reservationId = generateReservationId(userId, selectedDateTime);
 
-        Log.d("CourtDetailFragment", "Attempting to join court with ID: " + reservationId);
-
         db.collection("reservations")
-                .whereEqualTo("id", generateReservationId(userId, selectedDateTime))
+                .whereEqualTo("id", reservationId)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (task.getResult().isEmpty()) {
-                            Log.d("CourtDetailFragment", "No existing reservation found, creating new one.");
-                            createReservation(reservationId);
-                        } else {
-                            Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
-                        }
+                    if (task.isSuccessful() && task.getResult().isEmpty()) {
+                        createReservation(reservationId);
                     } else {
-                        Log.e("CourtDetailFragment", "Failed to check existing reservations: ", task.getException());
+                        Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -168,40 +158,76 @@ public class CourtDetailFragment extends Fragment {
         String formattedDateTime = formatDateTime(selectedDateTime);
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        Reservation newReservation = new Reservation(
-                reservationId,
-                court.getId(),
-                formattedDateTime,
-                false,
-                userId
-        );
+        db.runTransaction(transaction -> {
+            DocumentReference courtRef = db.collection("courts").document(court.getId());
+            Court court = transaction.get(courtRef).toObject(Court.class);
 
-        Log.d("CourtDetailFragment", "Adding reservation to user and court.");
+            DocumentReference userRef = db.collection("users").document(userId);
+            User user = transaction.get(userRef).toObject(User.class);
 
-        // Add reservation to the court's reservation array
-        db.collection("courts").document(court.getId())
-                .update("reservations", FieldValue.arrayUnion(newReservation))
-                .addOnSuccessListener(aVoid -> {
-                    Log.d("CourtDetailFragment", "Reservation added to court successfully.");
+            if (court != null && user != null) {
+                List<Reservation> reservations = court.getReservations();
+                if (reservations == null) {
+                    reservations = new ArrayList<>();
+                }
 
-                    // Now add the reservation to the user's reservation array
-                    db.collection("users").document(userId)
-                            .update("reservations", FieldValue.arrayUnion(newReservation))
-                            .addOnSuccessListener(aVoid1 -> {
-                                Log.d("CourtDetailFragment", "Reservation added to user successfully.");
-                                Toast.makeText(getContext(), "Reservation successful!", Toast.LENGTH_SHORT).show();
-                                loadCourtDetails(); // Refresh player count
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("CourtDetailFragment", "Failed to add reservation to user: " + e.getMessage());
-                                Toast.makeText(getContext(), "Failed to make reservation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
+                List<Reservation> userReservations = user.getReservations();
+                if (userReservations == null) {
+                    userReservations = new ArrayList<>();
+                }
 
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("CourtDetailFragment", "Failed to add reservation to court: " + e.getMessage());
-                    Toast.makeText(getContext(), "Failed to make reservation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                // Check if the user already has a reservation at the selected time
+                for (Reservation reservation : userReservations) {
+                    if (reservation.getDateTime().equals(formattedDateTime) && reservation.getCourtId().equals(court.getId())) {
+                        throw new FirebaseFirestoreException("User already has a reservation at this time.",
+                                FirebaseFirestoreException.Code.ABORTED);
+                    }
+                }
+
+                Reservation newReservation = new Reservation(
+                        reservationId,
+                        court.getId(),
+                        formattedDateTime,
+                        false,
+                        userId
+                );
+
+                reservations.add(newReservation);
+                userReservations.add(newReservation);
+
+                transaction.update(courtRef, "reservations", reservations);
+                transaction.update(userRef, "reservations", userReservations);
+
+                // If the court is full, send notifications to all players
+                if (reservations.size() == 4) {
+                    for (Reservation reservation : reservations) {
+                        Invitation fullReservationNotification = new Invitation();
+                        fullReservationNotification.setCourtId(court.getId());
+                        fullReservationNotification.setCourtName(court.getName());
+                        fullReservationNotification.setTime(formattedDateTime);
+                        fullReservationNotification.setCourtType(court.getType().toString());
+                        fullReservationNotification.setInviterId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        fullReservationNotification.setInviteeId(reservation.getPlayer());
+                        fullReservationNotification.setStatus("full");
+
+                        transaction.set(db.collection("invitations").document(), fullReservationNotification);
+                    }
+                }
+
+            } else {
+                throw new FirebaseFirestoreException("Court or User not found.",
+                        FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d("CourtDetailFragment", "Reservation added to user and court successfully.");
+            Toast.makeText(getContext(), "Reservation successful!", Toast.LENGTH_SHORT).show();
+            loadCourtDetails();
+        }).addOnFailureListener(e -> {
+            Log.e("CourtDetailFragment", "Failed to add reservation: " + e.getMessage());
+            Toast.makeText(getContext(), "Failed to make reservation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 
     private String generateReservationId(String userId, Date dateTime) {
@@ -224,14 +250,13 @@ public class CourtDetailFragment extends Fragment {
 
     private void inviteUser(User user, Court court) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String formattedDateTime = formatDateTime(selectedDateTime); // Assuming this method formats the Date
+        String formattedDateTime = formatDateTime(selectedDateTime);
 
         if (user.getId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
             Toast.makeText(getContext(), "You cannot invite yourself.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Step 1: Check for existing reservations
         db.collection("users").document(user.getId())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -252,29 +277,21 @@ public class CourtDetailFragment extends Fragment {
                             return;
                         }
 
-                        // Step 2: Check for any existing invitations (not just pending)
                         db.collection("invitations")
                                 .whereEqualTo("inviteeId", user.getId())
                                 .whereEqualTo("time", formattedDateTime)
                                 .get()
                                 .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        if (!task.getResult().isEmpty()) {
-                                            Toast.makeText(getContext(), "User already has an invitation for this time.", Toast.LENGTH_SHORT).show();
-                                            return;
-                                        }
-
-                                        // Step 3: Send the invitation since no conflicts were found
+                                    if (task.isSuccessful() && task.getResult().isEmpty()) {
                                         sendInvitation(user, court, formattedDateTime);
                                     } else {
-                                        Toast.makeText(getContext(), "Error checking invitations.", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "User already has an invitation for this time.", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                     } else {
                         Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .addOnFailureListener(e -> {
+                }).addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error checking reservations.", Toast.LENGTH_SHORT).show();
                     Log.e("CourtDetailFragment", "Error fetching user data", e);
                 });
@@ -283,7 +300,6 @@ public class CourtDetailFragment extends Fragment {
     private void sendInvitation(User user, Court court, String formattedDateTime) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Create an invitation object
         Invitation invitation = new Invitation();
         invitation.setCourtId(court.getId());
         invitation.setCourtName(court.getName());
@@ -293,7 +309,6 @@ public class CourtDetailFragment extends Fragment {
         invitation.setInviteeId(user.getId());
         invitation.setStatus("pending");
 
-        // Store the invitation in Firestore
         db.collection("invitations").add(invitation)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Invitation sent to " + user.getName(), Toast.LENGTH_SHORT).show();

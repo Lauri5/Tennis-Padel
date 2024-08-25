@@ -85,6 +85,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                 Glide.with(itemView.getContext()).load(uri).circleCrop().into(courtImage);
             });
 
+            if ("full".equals(invitation.getStatus())) {
+                acceptButton.setVisibility(View.GONE);
+                declineButton.setText("Got it!");
+            } else {
+                acceptButton.setVisibility(View.VISIBLE);
+                declineButton.setText("Decline");
+            }
+
             acceptButton.setOnClickListener(v -> acceptClickListener.onAcceptClick(invitation));
             declineButton.setOnClickListener(v -> declineClickListener.onDeclineClick(invitation));
         }

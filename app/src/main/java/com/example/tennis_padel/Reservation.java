@@ -8,7 +8,7 @@ public class Reservation implements Serializable {
     private String id;
     private String courtId;  // Store the court's ID
     private String dateTime;
-    private String playerId;  // Store player IDs
+    private String player;  // Store player IDs
     private boolean isLesson;
     private String teacherId;  // Store the teacher's ID
 
@@ -16,12 +16,12 @@ public class Reservation implements Serializable {
     public Reservation() {
     }
 
-    public Reservation(String id, String courtId, String dateTime, boolean isLesson, String playerId) {
+    public Reservation(String id, String courtId, String dateTime, boolean isLesson, String player) {
         this.id = id;
         this.courtId = courtId;
         this.dateTime = dateTime;
         this.isLesson = isLesson;
-        this.playerId = playerId;
+        this.player = player;
     }
 
     // Getter and setter methods
@@ -50,11 +50,11 @@ public class Reservation implements Serializable {
     }
 
     public String getPlayer() {
-        return playerId;
+        return player;
     }
 
     public void setPlayers(String players) {
-        this.playerId = playerId;
+        this.player = player;
     }
 
     public boolean isLesson() {

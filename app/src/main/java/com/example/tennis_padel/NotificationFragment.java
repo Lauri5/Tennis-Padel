@@ -5,7 +5,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,11 +17,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.WriteBatch;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class NotificationFragment extends Fragment {
 
@@ -51,7 +54,7 @@ public class NotificationFragment extends Fragment {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         db.collection("invitations")
                 .whereEqualTo("inviteeId", currentUserId)
-                .whereEqualTo("status", "notified")
+                .whereIn("status", Arrays.asList("notified", "full"))
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -82,19 +85,22 @@ public class NotificationFragment extends Fragment {
             return;
         }
 
+        // Add the user to the court's reservation
+        addReservation(invitation);
+
         // Remove the invitation from Firestore
         db.collection("invitations").document(invitation.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    // Add the user to the court's reservation
-                    addReservation(invitation);
-                    Toast.makeText(getContext(), "Invitation accepted", Toast.LENGTH_SHORT).show();
+                    if (!invitation.getStatus().equals("full"))
+                        Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+
                     invitationsList.remove(invitation);
                     notificationAdapter.notifyDataSetChanged();
                 })
                 .addOnFailureListener(e -> {
                     Log.e("NotificationFragment", "Error deleting invitation: ", e);
-                    Toast.makeText(getContext(), "Failed to accept invitation", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Failed to decline invitation", Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -110,7 +116,9 @@ public class NotificationFragment extends Fragment {
         db.collection("invitations").document(invitation.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+                    if (!invitation.getStatus().equals("full"))
+                        Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+
                     invitationsList.remove(invitation);
                     notificationAdapter.notifyDataSetChanged();
                 })
@@ -121,104 +129,88 @@ public class NotificationFragment extends Fragment {
     }
 
     private void addReservation(Invitation invitation) {
-        if (invitation.getCourtId() == null) {
-            Log.e("NotificationFragment", "Error: Court ID is null");
-            Toast.makeText(getContext(), "Error: Court ID is missing", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String formattedDateTime = invitation.getTime();
+        String formattedDateTime = invitation.getTime(); // This will be used as selectedDateTime
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String reservationId = generateReservationId(userId, formattedDateTime);
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.runTransaction(transaction -> {
+            DocumentReference courtRef = db.collection("courts").document(invitation.getCourtId());
+            Court court = transaction.get(courtRef).toObject(Court.class);
 
-        // Check if the user already has a reservation for this court and date
-        db.collection("courts").document(invitation.getCourtId()).get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                Court court = documentSnapshot.toObject(Court.class);
-                if (court != null) {
-                    if (court.getReservations() == null) {
-                        court.setReservations(new ArrayList<>());
-                    }
+            DocumentReference userRef = db.collection("users").document(userId);
+            User user = transaction.get(userRef).toObject(User.class);
 
-                    // Check if the user is already booked for this date/time
-                    for (Reservation reservation : court.getReservations()) {
-                        if (reservation.getDateTime().equals(formattedDateTime) && userId.equals(reservation.getPlayer())) {
-                            Toast.makeText(getContext(), "You are already booked for this match.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    }
-
-                    // Add the new reservation
-                    Reservation newReservation = new Reservation(
-                            userId + "-" + formattedDateTime,
-                            invitation.getCourtId(),
-                            formattedDateTime,
-                            false,
-                            userId
-                    );
-
-                    // Add the new reservation to the court's reservation list
-                    court.getReservations().add(newReservation);
-
-                    // Update only the reservations array in the court document
-                    db.collection("courts").document(invitation.getCourtId())
-                            .update("reservations", FieldValue.arrayUnion(newReservation))
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("NotificationFragment", "Reservation added successfully to the court.");
-                                addReservationToUser(userId, newReservation);
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("NotificationFragment", "Error adding reservation to the court: ", e);
-                                Toast.makeText(getContext(), "Failed to add reservation to the court", Toast.LENGTH_SHORT).show();
-                            });
+            if (court != null && user != null) {
+                List<Reservation> reservations = court.getReservations();
+                if (reservations == null) {
+                    reservations = new ArrayList<>();
                 }
+
+                List<Reservation> userReservations = user.getReservations();
+                if (userReservations == null) {
+                    userReservations = new ArrayList<>();
+                }
+
+                // Check if the user already has a reservation at the selected time
+                for (Reservation reservation : userReservations) {
+                    if (reservation.getDateTime().equals(formattedDateTime) && reservation.getCourtId().equals(court.getId())) {
+                        throw new FirebaseFirestoreException("User already has a reservation at this time.",
+                                FirebaseFirestoreException.Code.ABORTED);
+                    }
+                }
+
+                Reservation newReservation = new Reservation(
+                        reservationId,
+                        court.getId(),
+                        formattedDateTime,
+                        false,
+                        userId
+                );
+
+                reservations.add(newReservation);
+                userReservations.add(newReservation);
+
+                transaction.update(courtRef, "reservations", reservations);
+                transaction.update(userRef, "reservations", userReservations);
+
+                // If the court is full, send notifications to all players
+                if (reservations.size() == 4) {
+                    for (Reservation reservation : reservations) {
+                        Invitation fullReservationNotification = new Invitation();
+                        fullReservationNotification.setCourtId(court.getId());
+                        fullReservationNotification.setCourtName(court.getName());
+                        fullReservationNotification.setTime(formattedDateTime);
+                        fullReservationNotification.setCourtType(court.getType().toString());
+                        fullReservationNotification.setInviterId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        fullReservationNotification.setInviteeId(reservation.getPlayer());
+                        fullReservationNotification.setStatus("full");
+
+                        transaction.set(db.collection("invitations").document(), fullReservationNotification);
+                    }
+                }
+
+            } else {
+                throw new FirebaseFirestoreException("Court or User not found.",
+                        FirebaseFirestoreException.Code.ABORTED);
             }
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d("NotificationFragment", "Reservation added to user and court successfully.");
+            Toast.makeText(getContext(), "Reservation successful!", Toast.LENGTH_SHORT).show();
+            loadNotifications(); // Refresh notifications
         }).addOnFailureListener(e -> {
-            Log.e("NotificationFragment", "Error fetching court: ", e);
-            Toast.makeText(getContext(), "Failed to fetch court data", Toast.LENGTH_SHORT).show();
+            Log.e("NotificationFragment", "Failed to add reservation: " + e.getMessage());
+            Toast.makeText(getContext(), "Failed to make reservation: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
 
-    private void addReservationToUser(String userId, Reservation newReservation) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference userRef = db.collection("users").document(userId);
+    private String generateReservationId(String userId, String dateTime) {
+        return userId + "-" + dateTime;
+    }
 
-        // Check if the user already has a reservation for this court and date
-        userRef.get().addOnSuccessListener(userSnapshot -> {
-            if (userSnapshot.exists()) {
-                User user = userSnapshot.toObject(User.class);
-                if (user != null) {
-                    if (user.getReservations() == null) {
-                        user.setReservations(new ArrayList<>());
-                    }
-
-                    // Ensure the user doesn't already have this reservation (as a safety check)
-                    for (Reservation reservation : user.getReservations()) {
-                        if (reservation.getDateTime().equals(newReservation.getDateTime()) && reservation.getCourtId().equals(newReservation.getCourtId())) {
-                            Log.d("NotificationFragment", "User already has this reservation.");
-                            return;
-                        }
-                    }
-
-                    // Add the new reservation to the user's reservation list
-                    user.getReservations().add(newReservation);
-
-                    // Update only the reservations array in the user document
-                    userRef.update("reservations", FieldValue.arrayUnion(newReservation))
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d("NotificationFragment", "Reservation added successfully to the user.");
-                                Toast.makeText(getContext(), "Reservation added successfully!", Toast.LENGTH_SHORT).show();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("NotificationFragment", "Error adding reservation to the user: ", e);
-                                Toast.makeText(getContext(), "Failed to add reservation to the user", Toast.LENGTH_SHORT).show();
-                            });
-                }
-            }
-        }).addOnFailureListener(e -> {
-            Log.e("NotificationFragment", "Error fetching user: ", e);
-            Toast.makeText(getContext(), "Failed to fetch user data", Toast.LENGTH_SHORT).show();
-        });
+    private String formatDateTime(Date dateTime) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
+        return dateFormat.format(dateTime);
     }
 }

@@ -32,6 +32,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity {
     MainViewModel viewModel;
 
@@ -81,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
         // Listen for invitations where the current user is the invitee
         db.collection("invitations")
                 .whereEqualTo("inviteeId", currentUserId)
-                .whereEqualTo("status", "pending")
+                .whereIn("status", Arrays.asList("pending", "full"))
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null) {
                         Log.w("MainActivity", "Listen failed.", e);
@@ -92,18 +94,21 @@ public class MainActivity extends AppCompatActivity {
                         if (dc.getType() == DocumentChange.Type.ADDED) {
                             String court = dc.getDocument().getString("courtName");
                             String time = dc.getDocument().getString("time");
+                            String status = dc.getDocument().getString("status");
 
                             // Show a notification to the user
-                            showNotification(court, time);
+                            showNotification(court, time, status);
 
                             // Update the status to "notified" to prevent duplicate notifications
-                            dc.getDocument().getReference().update("status", "notified");
+                            assert status != null;
+                            if (!status.equals("full"))
+                                dc.getDocument().getReference().update("status", "notified");
                         }
                     }
                 });
     }
 
-    private void showNotification(String court, String time) {
+    private void showNotification(String court, String time, String status) {
         // Step 1: Create a Notification Channel (for Android 8.0 and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "InviteNotificationChannel";
@@ -124,10 +129,16 @@ public class MainActivity extends AppCompatActivity {
         // Here we add the FLAG_IMMUTABLE flag
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
+        String message;
+        if (status.equals("full"))
+            message = "The game is on!";
+        else
+            message = "You've been invited to play!";
+
         // Step 2: Build the notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "InviteNotificationChannel")
                 .setSmallIcon(R.drawable.ic_notification)  // Replace with your notification icon
-                .setContentTitle("You've been invited to play!")
+                .setContentTitle(message)
                 .setContentText("Court: " + court + " at " + time)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)

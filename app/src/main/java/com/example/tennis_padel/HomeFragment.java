@@ -242,14 +242,14 @@ public class HomeFragment extends Fragment {
                 boolean isLesson = isLessonObj != null ? isLessonObj : false;
 
                 String reservationId = (String) reservationData.get("id");
-                String playerId = (String) reservationData.get("playerId");
+                String player = (String) reservationData.get("player");
 
                 Reservation reservation = new Reservation(
                         reservationId,
                         courtDocument.getId(),
                         dateTimeStr, // Use the dateTime as a String
                         isLesson,
-                        playerId
+                        player
                 );
 
                 reservations.add(reservation);
