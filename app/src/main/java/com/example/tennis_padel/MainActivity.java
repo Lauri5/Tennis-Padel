@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
                     for (DocumentChange dc : snapshots.getDocumentChanges()) {
                         if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String court = dc.getDocument().getString("court");
+                            String court = dc.getDocument().getString("courtName");
                             String time = dc.getDocument().getString("time");
 
                             // Show a notification to the user
