@@ -1,18 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/common_google_signin_btn_text_dark_normal"
+        android:icon="@drawable/baseline_menu_24"
         android:title="@string/home" />
     <item
         android:id="@+id/navigation_search"
-        android:icon="@drawable/common_google_signin_btn_text_dark_normal"
+        android:icon="@drawable/baseline_menu_24"
         android:title="@string/search" />
     <item
         android:id="@+id/navigation_profile"
-        android:icon="@drawable/common_google_signin_btn_text_dark_normal"
+        android:icon="@drawable/baseline_menu_24"
         android:title="@string/profile" />
     <item
         android:id="@+id/navigation_book_lesson"
-        android:icon="@drawable/common_google_signin_btn_text_dark_normal"
+        android:icon="@drawable/baseline_menu_24"
         android:title="@string/book_lesson" />
 </menu>
