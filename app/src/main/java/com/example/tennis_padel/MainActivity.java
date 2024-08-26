@@ -35,7 +35,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
-    MainViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Initialize ViewModel
-        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         // Check if user is logged in
         if (!viewModel.userLoggedIn()) {

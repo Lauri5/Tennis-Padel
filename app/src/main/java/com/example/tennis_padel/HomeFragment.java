@@ -42,7 +42,6 @@ public class HomeFragment extends Fragment {
     private UserAdapter userAdapter;
     private Button datePickerButton;
     private Button timePickerButton;
-    private FirebaseUser user;
 
     // Selected date and time
     private Calendar selectedDateTime = Calendar.getInstance();
@@ -55,7 +54,6 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         selectedDateTextView = view.findViewById(R.id.selected_date_textview);
-        user = FirebaseAuth.getInstance().getCurrentUser();
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
