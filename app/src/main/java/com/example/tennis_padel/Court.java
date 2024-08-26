@@ -85,7 +85,7 @@ public class Court implements Serializable {
 
         if (playerCount == 0) {
             return CourtStatus.AVAILABLE;
-        } else if (lesson && playerCount >= 2) {
+        } else if (lesson && playerCount >= 1) {
             // For lessons, the court is reserved if there are 2 or more players
             return CourtStatus.RESERVED;
         } else if (!lesson && playerCount < 4) {
