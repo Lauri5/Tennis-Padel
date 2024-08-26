@@ -25,11 +25,20 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
     private List<Court> courtList;
     private FragmentManager fragmentManager;
     private Calendar selectedDateTime;
+    private OnCourtSelectedListener onCourtSelectedListener; // New
 
+    // Existing constructor
     public CourtAdapter(List<Court> courtList, FragmentManager fragmentManager, Calendar selectedDateTime) {
         this.courtList = courtList;
         this.fragmentManager = fragmentManager;
         this.selectedDateTime = selectedDateTime;
+    }
+
+    // New constructor for BookLessonFragment
+    public CourtAdapter(List<Court> courtList, Calendar selectedDateTime, OnCourtSelectedListener onCourtSelectedListener) {
+        this.courtList = courtList;
+        this.selectedDateTime = selectedDateTime;
+        this.onCourtSelectedListener = onCourtSelectedListener;
     }
 
     @Override
@@ -42,12 +51,21 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
     @Override
     public void onBindViewHolder(CourtViewHolder holder, int position) {
         Court court = courtList.get(position);
-        holder.bind(court, holder.itemView.getContext(), fragmentManager, selectedDateTime);
+        if (onCourtSelectedListener != null) {
+            holder.bind(court, holder.itemView.getContext(), selectedDateTime, onCourtSelectedListener);
+        } else {
+            holder.bind(court, holder.itemView.getContext(), fragmentManager, selectedDateTime);
+        }
     }
 
     @Override
     public int getItemCount() {
         return courtList.size();
+    }
+
+    // Define the OnCourtSelectedListener interface
+    public interface OnCourtSelectedListener {
+        void onCourtSelected(Court selectedCourt);
     }
 
     public static class CourtViewHolder extends RecyclerView.ViewHolder {
@@ -79,7 +97,7 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
                     break;
             }
 
-            // Set click listener to open CourtDetailFragment
+            // Existing behavior: Navigate to CourtDetailFragment
             cardView.setOnClickListener(v -> {
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(R.id.fragment_container, CourtDetailFragment.newInstance(court, selectedDateTime.getTime()));
@@ -88,6 +106,38 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
             });
 
             // Load the image based on CourtType
+            loadImage(context, court);
+        }
+
+        public void bind(Court court, Context context, Calendar selectedDateTime, OnCourtSelectedListener onCourtSelectedListener) {
+            courtName.setText(court.getName());
+            CourtStatus status = court.getStatus(selectedDateTime.getTime());
+
+            // Set background color based on court status
+            switch (status) {
+                case AVAILABLE:
+                    cardView.setCardBackgroundColor(Color.parseColor("#00FF00"));  // Green for AVAILABLE
+                    break;
+                case RESERVED:
+                    cardView.setCardBackgroundColor(Color.parseColor("#FF0000"));  // Red for RESERVED
+                    break;
+                case SEMI_RESERVED:
+                    cardView.setCardBackgroundColor(Color.parseColor("#FFFF00"));  // Yellow for SEMI_RESERVED
+                    break;
+            }
+
+            // New behavior: Just select the court without navigation
+            cardView.setOnClickListener(v -> {
+                if (onCourtSelectedListener != null) {
+                    onCourtSelectedListener.onCourtSelected(court);
+                }
+            });
+
+            // Load the image based on CourtType
+            loadImage(context, court);
+        }
+
+        private void loadImage(Context context, Court court) {
             String imageName;
             switch (court.getType()) {
                 case TENNIS_OUTDOOR:

@@ -27,6 +27,7 @@ public class User implements Serializable {
     private ArrayList<Reservation> reservations;
     private HashMap<String, Float> voters;
     private Role role;
+    private HashMap<String, ArrayList<String>> availability;
 
     public User(String id, String email) {
         this.id = id;
@@ -157,5 +158,30 @@ public class User implements Serializable {
 
     public void setReservations(ArrayList<Reservation> reservations) {
         this.reservations = reservations;
+    }
+
+    public HashMap<String, ArrayList<String>> getAvailability() {  // Change Date to String
+        return availability;
+    }
+
+    public void setAvailability(HashMap<String, ArrayList<String>> availability) {  // Change Date to String
+        this.availability = availability;
+    }
+
+    // Add methods to manage availability
+    public void addAvailability(String date, String timeSlot) {  // Change Date to String
+        if (this.availability == null) {
+            this.availability = new HashMap<>();
+        }
+        this.availability.computeIfAbsent(date, k -> new ArrayList<>()).add(timeSlot);
+    }
+
+    public void removeAvailability(String date, String timeSlot) {  // Change Date to String
+        if (this.availability != null && this.availability.containsKey(date)) {
+            this.availability.get(date).remove(timeSlot);
+            if (this.availability.get(date).isEmpty()) {
+                this.availability.remove(date);
+            }
+        }
     }
 }

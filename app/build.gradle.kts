@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.glide)
     implementation(libs.firebase.storage)
+    implementation(libs.recyclerview)
     annotationProcessor(libs.glide.compiler)
     implementation(libs.navigation.ui)
     testImplementation(libs.junit)

@@ -45,16 +45,6 @@ public class Court implements Serializable {
         this.id = id;
     }
 
-    public boolean isAvailable(Date dateTime) {
-        String formattedDate = formatDateTime(dateTime);
-        for (Reservation reservation : reservations) {
-            if (reservation.getDateTime().equals(formattedDate)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public String getName() {
         return name;
     }
@@ -82,30 +72,30 @@ public class Court implements Serializable {
     public CourtStatus getStatus(Date dateTime) {
         String formattedDate = formatDateTime(dateTime);
         int playerCount = 0;
+        boolean lesson = false;
+
         for (Reservation reservation : reservations) {
             if (reservation.getDateTime().equals(formattedDate)) {
                 playerCount++;
+                if (reservation.getLesson()) {
+                    lesson = true;  // Identify that this is a lesson reservation
+                }
             }
         }
 
         if (playerCount == 0) {
             return CourtStatus.AVAILABLE;
-        } else if (playerCount < 4) {
-            return CourtStatus.SEMI_RESERVED;
-        } else {
+        } else if (lesson && playerCount >= 2) {
+            // For lessons, the court is reserved if there are 2 or more players
             return CourtStatus.RESERVED;
+        } else if (!lesson && playerCount < 4) {
+            return CourtStatus.SEMI_RESERVED;
+        } else if (!lesson && playerCount == 4) {
+            return CourtStatus.RESERVED;
+        } else {
+            // Just in case, handle any edge cases
+            return CourtStatus.AVAILABLE;
         }
-    }
-
-    public int getReservationsNumber(Date dateTime) {
-        String formattedDate = formatDateTime(dateTime);
-        int playerCount = 0;
-        for (Reservation reservation : reservations) {
-            if (reservation.getDateTime().equals(formattedDate)) {
-                playerCount++;
-            }
-        }
-        return playerCount;
     }
 
     private String formatDateTime(Date dateTime) {

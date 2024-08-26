@@ -83,7 +83,6 @@ public class ProfileFragment extends Fragment {
         });
     }
 
-
     private void updateProfileImage(String imageUrl) {
         Glide.with(requireContext())
                 .load(imageUrl)

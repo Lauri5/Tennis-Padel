@@ -1,7 +1,6 @@
 package com.example.tennis_padel;
 
 import com.google.android.material.textview.MaterialTextView;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -21,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,7 +28,6 @@ import java.util.Map;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.widget.Button;
-import android.util.Log;
 import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
@@ -237,9 +234,9 @@ public class HomeFragment extends Fragment {
                 // Since dateTime is stored as a String, retrieve it directly
                 String dateTimeStr = (String) reservationData.get("dateTime");
 
-                // Safely retrieve the boolean value for isLesson
-                Boolean isLessonObj = (Boolean) reservationData.get("isLesson");
-                boolean isLesson = isLessonObj != null ? isLessonObj : false;
+                // Safely retrieve the boolean value for lesson
+                Boolean lessonObj = (Boolean) reservationData.get("lesson");
+                boolean lesson = lessonObj != null ? lessonObj : false;
 
                 String reservationId = (String) reservationData.get("id");
                 String player = (String) reservationData.get("player");
@@ -248,7 +245,7 @@ public class HomeFragment extends Fragment {
                         reservationId,
                         courtDocument.getId(),
                         dateTimeStr, // Use the dateTime as a String
-                        isLesson,
+                        lesson,
                         player
                 );
 

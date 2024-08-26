@@ -9,18 +9,18 @@ public class Reservation implements Serializable {
     private String courtId;  // Store the court's ID
     private String dateTime;
     private String player;  // Store player IDs
-    private boolean isLesson;
+    private boolean lesson;
     private String teacherId;  // Store the teacher's ID
 
     // No-argument constructor required for Firestore serialization
     public Reservation() {
     }
 
-    public Reservation(String id, String courtId, String dateTime, boolean isLesson, String player) {
+    public Reservation(String id, String courtId, String dateTime, boolean lesson, String player) {
         this.id = id;
         this.courtId = courtId;
         this.dateTime = dateTime;
-        this.isLesson = isLesson;
+        this.lesson = lesson;
         this.player = player;
     }
 
@@ -57,12 +57,12 @@ public class Reservation implements Serializable {
         this.player = player;
     }
 
-    public boolean isLesson() {
-        return isLesson;
+    public boolean getLesson() {
+        return lesson;
     }
 
     public void setLesson(boolean lesson) {
-        isLesson = lesson;
+        this.lesson = lesson;
     }
 
     public String getTeacherId() {
