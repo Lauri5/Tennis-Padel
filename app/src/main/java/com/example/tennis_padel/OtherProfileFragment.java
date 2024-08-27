@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -25,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OtherProfileFragment extends Fragment {
 
@@ -32,6 +35,7 @@ public class OtherProfileFragment extends Fragment {
     private User user;
     private OtherProfileViewModel viewModel;
     private Report selectedReport;
+    private ReportAdapter reportAdapter;
 
     private final HashMap<Report, String> reportDisplayMap = new HashMap<Report, String>() {{
         put(Report.UNSPORTSMANLIKE_CONDUCT, "Unsportsmanlike Conduct");
@@ -76,11 +80,21 @@ public class OtherProfileFragment extends Fragment {
         MaterialButton reportButton = view.findViewById(R.id.report);
         MaterialButton starButton = view.findViewById(R.id.starButton);
         Spinner spinnerReport = view.findViewById(R.id.spinnerReport);
+        MaterialTextView repTextView = view.findViewById(R.id.repProfile);
+        RecyclerView reportsRecyclerView = view.findViewById(R.id.reportsRecyclerView);
+        MaterialButton winsPlus = view.findViewById(R.id.winsPlus);
+        MaterialButton lossesPlus = view.findViewById(R.id.lossesPlus);
+        MaterialButton winsMinus = view.findViewById(R.id.winsMinus);
+        MaterialButton lossesMinus = view.findViewById(R.id.lossesMinus);
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        User currentUser = UserDataRepository.getInstance().getUser();
+
+        // Initialize the RecyclerView and the Adapter here to avoid NullPointerException
+        setupReportsRecyclerView(reportsRecyclerView);
 
         viewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
-            if (currentUserId.equals(user.getId())){
+            if (currentUserId.equals(user.getId())) {
                 Fragment ProfileFragment = new ProfileFragment();
                 getActivity().getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, ProfileFragment)
@@ -88,7 +102,7 @@ public class OtherProfileFragment extends Fragment {
                         .commit();
                 BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.nav_view);
                 bottomNavigationView.setSelectedItemId(R.id.navigation_profile);
-            }else{
+            } else {
                 if (user != null) {
                     nameTextView.setText(user.getName());
                     lastNameTextView.setText(user.getLastName());
@@ -102,50 +116,98 @@ public class OtherProfileFragment extends Fragment {
                             .load(user.getProfilePicture())
                             .circleCrop()
                             .into(profileImageView);
+
+                    if (currentUser.getRole() == Role.ADMIN) {
+                        // Hide unnecessary UI elements for admin
+                        reportButton.setVisibility(View.GONE);
+                        starButton.setVisibility(View.GONE);
+                        spinnerReport.setVisibility(View.GONE);
+
+                        // Show the admin-specific RecyclerView and buttons
+                        reportsRecyclerView.setVisibility(View.VISIBLE);
+                        winsPlus.setVisibility(View.VISIBLE);
+                        lossesPlus.setVisibility(View.VISIBLE);
+                        winsMinus.setVisibility(View.VISIBLE);
+                        lossesMinus.setVisibility(View.VISIBLE);
+
+                        ratingBar.setIsIndicator(true);
+
+                        // Populate the reports list for the admin
+                        if (user.getReports() != null && !user.getReports().isEmpty()) {
+                            List<Map.Entry<String, Report>> reportEntries = new ArrayList<>(user.getReports().entrySet());
+                            reportAdapter.updateReports(reportEntries);
+                        } else {
+                            reportAdapter.updateReports(new ArrayList<>());
+                        }
+                    }
                 }
             }
         });
 
-        List<String> reportsList = new ArrayList<>();
-        HashMap<String, Report> stringToReportMap = new HashMap<>();
-        for (Report report : Report.values()) {
-            String displayString = reportDisplayMap.get(report);
-            reportsList.add(displayString);
-            stringToReportMap.put(displayString, report);
+        // Regular user functionalities
+        if (currentUser.getRole() != Role.ADMIN) {
+            List<String> reportsList = new ArrayList<>();
+            HashMap<String, Report> stringToReportMap = new HashMap<>();
+            for (Report report : Report.values()) {
+                String displayString = reportDisplayMap.get(report);
+                reportsList.add(displayString);
+                stringToReportMap.put(displayString, report);
+            }
+
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, reportsList);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerReport.setAdapter(adapter);
+
+            spinnerReport.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    String selectedItem = parent.getItemAtPosition(position).toString();
+                    selectedReport = stringToReportMap.get(selectedItem);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
+
+            ratingBar.setOnRatingBarChangeListener((ratingBar1, rating, fromUser) -> {
+                if (fromUser) {
+                    viewModel.setLastRating(rating);
+                }
+            });
+
+            starButton.setOnClickListener(v -> {
+                if (user != null) {
+                    viewModel.submitRating(currentUserId, viewModel.getLastRating().getValue());
+                }
+            });
+
+            reportButton.setOnClickListener(v -> {
+                if (selectedReport != null) {
+                    viewModel.submitReport(currentUserId, selectedReport);
+                }
+            });
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, reportsList);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerReport.setAdapter(adapter);
-
-        spinnerReport.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedItem = parent.getItemAtPosition(position).toString();
-                selectedReport = stringToReportMap.get(selectedItem);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+        // Admin-specific functionality for adjusting wins and losses
+        winsPlus.setOnClickListener(v -> {
+            viewModel.incrementWins();
+            refreshRank(winsTextView, lossesTextView, rankTextView);
         });
 
-        ratingBar.setOnRatingBarChangeListener((ratingBar1, rating, fromUser) -> {
-            if (fromUser) {
-                viewModel.setLastRating(rating);
-            }
+        winsMinus.setOnClickListener(v -> {
+            viewModel.decrementWins();
+            refreshRank(winsTextView, lossesTextView, rankTextView);
         });
 
-        starButton.setOnClickListener(v -> {
-            if (user != null) {
-                viewModel.submitRating(currentUserId, viewModel.getLastRating().getValue());
-            }
+        lossesPlus.setOnClickListener(v -> {
+            viewModel.incrementLosses();
+            refreshRank(winsTextView, lossesTextView, rankTextView);
         });
 
-        reportButton.setOnClickListener(v -> {
-            if (selectedReport != null) {
-                viewModel.submitReport(currentUserId, selectedReport);
-            }
+        lossesMinus.setOnClickListener(v -> {
+            viewModel.decrementLosses();
+            refreshRank(winsTextView, lossesTextView, rankTextView);
         });
 
         viewModel.getRatingStatus().observe(getViewLifecycleOwner(), status -> {
@@ -157,5 +219,31 @@ public class OtherProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void setupReportsRecyclerView(RecyclerView reportsRecyclerView) {
+        reportsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        reportAdapter = new ReportAdapter(new ArrayList<>(), new ReportAdapter.OnReportActionListener() {
+            @Override
+            public void onEditReport(String reportKey, Report report) {
+                // Implement logic for editing the report here, e.g., update the report in the database
+                viewModel.updateReport(user, reportKey, report);
+                Toast.makeText(getContext(), "Report updated", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDeleteReport(String reportKey) {
+                // Implement logic for deleting the report here
+                viewModel.deleteReport(user, reportKey);
+                Toast.makeText(getContext(), "Report deleted", Toast.LENGTH_SHORT).show();
+            }
+        }, reportDisplayMap, getContext()); // Pass the map and context here
+        reportsRecyclerView.setAdapter(reportAdapter);
+    }
+
+    private void refreshRank(MaterialTextView winsTextView, MaterialTextView lossesTextView, MaterialTextView rankTextView) {
+        winsTextView.setText(String.valueOf(viewModel.getUserLiveData().getValue().getWins()));
+        lossesTextView.setText(String.valueOf(viewModel.getUserLiveData().getValue().getLosses()));
+        rankTextView.setText(String.valueOf(viewModel.getUserLiveData().getValue().getRatingRank()));
     }
 }

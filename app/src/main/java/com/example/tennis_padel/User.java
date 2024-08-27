@@ -107,17 +107,21 @@ public class User implements Serializable {
         return wins;
     }
 
-    public void setWins(int wins) {
-        this.wins = wins;
+    public void addWins() {
+        this.wins++;
     }
+
+    public void subWins() { this.wins--; }
 
     public int getLosses() {
         return losses;
     }
 
-    public void setLosses(int losses) {
-        this.losses = losses;
+    public void addLosses() {
+        this.losses++;
     }
+
+    public void subLosses() { this.losses--; }
 
     public HashMap<String, Report> getReports() {
         return reports;

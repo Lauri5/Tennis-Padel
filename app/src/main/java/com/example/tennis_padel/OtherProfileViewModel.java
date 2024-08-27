@@ -99,4 +99,103 @@ public class OtherProfileViewModel extends AndroidViewModel {
             reportStatus.postValue("Error submitting report");
         });
     }
+
+    public void deleteReport(User user, String reportKey) {
+        if (user != null && user.getReports() != null) {
+            user.getReports().remove(reportKey);
+            userLiveData.setValue(user); // Update the LiveData so the UI reflects the changes
+
+            // Update Firestore
+            DocumentReference userDocRef = db.collection("users").document(user.getId());
+            db.runTransaction((Transaction.Function<Void>) transaction -> {
+                DocumentSnapshot snapshot = transaction.get(userDocRef);
+                Map<String, Object> existingReports = (Map<String, Object>) snapshot.get("reports");
+                if (existingReports != null) {
+                    existingReports.remove(reportKey);
+                    transaction.update(userDocRef, "reports", existingReports);
+                }
+                return null;
+            }).addOnSuccessListener(aVoid -> {
+                reportStatus.postValue("Report deleted successfully");
+            }).addOnFailureListener(e -> {
+                reportStatus.postValue("Error deleting report");
+            });
+        }
+    }
+
+    public void updateReport(User user, String reportKey, Report newReport) {
+        if (user != null && user.getReports() != null) {
+            user.getReports().put(reportKey, newReport);
+            userLiveData.setValue(user); // Update the LiveData so the UI reflects the changes
+
+            // Update Firestore
+            DocumentReference userDocRef = db.collection("users").document(user.getId());
+            db.runTransaction((Transaction.Function<Void>) transaction -> {
+                DocumentSnapshot snapshot = transaction.get(userDocRef);
+                Map<String, Object> existingReports = (Map<String, Object>) snapshot.get("reports");
+                if (existingReports == null) {
+                    existingReports = new HashMap<>();
+                }
+                existingReports.put(reportKey, newReport.name());
+                transaction.update(userDocRef, "reports", existingReports);
+                return null;
+            }).addOnSuccessListener(aVoid -> {
+                reportStatus.postValue("Report updated successfully");
+            }).addOnFailureListener(e -> {
+                reportStatus.postValue("Error updating report");
+            });
+        }
+    }
+
+    public void incrementWins() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        user.addWins();
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            transaction.update(userDocRef, "wins", user.getWins());
+            return null;
+        });
+    }
+
+    public void incrementLosses() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        user.addLosses();
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            transaction.update(userDocRef, "losses", user.getLosses());
+            return null;
+        });
+    }
+
+    public void decrementWins() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        user.subWins();
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            transaction.update(userDocRef, "wins", user.getWins());
+            return null;
+        });
+    }
+
+    public void decrementLosses() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        user.subLosses();
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            transaction.update(userDocRef, "losses", user.getLosses());
+            return null;
+        });
+    }
 }

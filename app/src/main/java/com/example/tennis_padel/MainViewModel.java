@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MainViewModel extends ViewModel {
@@ -40,7 +41,11 @@ public class MainViewModel extends ViewModel {
 
     // Method to fetch all users from Firestore
     public void loadAllUsers() {
-        db.collection("users").get()
+        // Define an array of roles to filter by
+        List<String> allowedRoles = Arrays.asList("STUDENT", "TEACHER");
+
+        // Use the 'whereIn' clause to filter documents by roles
+        db.collection("users").whereIn("role", allowedRoles).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         QuerySnapshot result = task.getResult();
