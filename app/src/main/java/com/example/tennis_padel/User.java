@@ -27,34 +27,34 @@ public class User implements Serializable {
     private HashMap<String, Float> voters;
     private Role role;
     private HashMap<String, ArrayList<String>> availability;
-    private boolean isBanned, isSuspended;
+    private boolean banned, suspended;
 
     public User(String id, String email) {
         this.id = id;
         this.email = email;
         this.role = Role.STUDENT;
         this.profilePicture = "https://firebasestorage.googleapis.com/v0/b/tennis-padel-85718.appspot.com/o/ProfilePlaceHolder.png?alt=media&token=0fdd99d6-c24a-47bf-9a1c-336883cf5fc9";
-        this.isBanned = false;
-        this.isSuspended = false;
+        this.banned = false;
+        this.suspended = false;
     }
 
     public User() {
     }
 
     public boolean isBanned() {
-        return isBanned;
+        return banned;
     }
 
     public void setBanned(boolean banned) {
-        isBanned = banned;
+        this.banned = banned;
     }
 
     public boolean isSuspended() {
-        return isSuspended;
+        return suspended;
     }
 
     public void setSuspended(boolean suspended) {
-        isSuspended = suspended;
+        this.suspended = suspended;
     }
 
     public String getSuspensionEndDate() {

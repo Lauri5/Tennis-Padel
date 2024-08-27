@@ -30,9 +30,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,6 +61,21 @@ public class MainActivity extends AppCompatActivity {
             finish();
         } else {
             viewModel.loadUserData();
+        }
+
+        // Observe the ban status LiveData
+        viewModel.getIsUserBannedLiveData().observe(this, banned -> {
+            if (banned) {
+                // Log out the user and redirect to login activity
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(this, Login.class));
+                finish();
+            }
+        });
+
+        // It's important to call this after setting up the observer
+        if (viewModel.userLoggedIn()) {
+            viewModel.checkUserBanStatus();  // Check if the user is banned
         }
 
         setupNavigation();
@@ -105,6 +124,44 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+        checkAndUpdateUserSuspensions();
+    }
+
+    private void checkAndUpdateUserSuspensions() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            User user = document.toObject(User.class);
+                            if (user != null && user.isSuspended()) {
+                                try {
+                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                                    Date suspensionEndDate = sdf.parse(user.getSuspensionEndDate());
+                                    Date currentDate = new Date();
+                                    if (suspensionEndDate != null && suspensionEndDate.before(currentDate)) {
+                                        // Update the user's suspended status in Firestore
+                                        updateSuspensionStatus(document.getId(), false);
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("MainActivity", "Error parsing date for user suspension", e);
+                                }
+                            }
+                        }
+                    } else {
+                        Log.e("MainActivity", "Error getting documents: ", task.getException());
+                    }
+                });
+    }
+
+    private void updateSuspensionStatus(String userId, boolean isSuspended) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("users").document(userId)
+                .update("suspended", isSuspended)
+                .addOnSuccessListener(aVoid -> Log.d("MainActivity", "User suspension status updated successfully"))
+                .addOnFailureListener(e -> Log.e("MainActivity", "Error updating user suspension status", e));
     }
 
     private void showNotification(String court, String time, String status) {

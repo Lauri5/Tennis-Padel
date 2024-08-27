@@ -1,11 +1,13 @@
 package com.example.tennis_padel;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.Spinner;
@@ -24,6 +26,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -218,7 +221,7 @@ public class OtherProfileFragment extends Fragment {
         });
 
         suspendButton.setOnClickListener(v -> {
-            viewModel.suspendUser();
+            showDatePicker();
         });
 
         viewModel.getRatingStatus().observe(getViewLifecycleOwner(), status -> {
@@ -234,6 +237,21 @@ public class OtherProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    // Method to show DatePicker and handle date selection
+    private void showDatePicker() {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                // Formatting the date as YYYY-MM-DD
+                String selectedDate = year + "-" + (month + 1) + "-" + dayOfMonth;
+                viewModel.suspendUser(selectedDate);
+            }
+        }, LocalDate.now().getYear(), LocalDate.now().getMonthValue() - 1, LocalDate.now().getDayOfMonth());
+
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000); // Set today's date as minimum
+        datePickerDialog.show();
     }
 
     private void setupReportsRecyclerView(RecyclerView reportsRecyclerView) {

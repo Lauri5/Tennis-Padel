@@ -211,17 +211,32 @@ public class OtherProfileViewModel extends AndroidViewModel {
 
         DocumentReference userDocRef = db.collection("users").document(user.getId());
         db.runTransaction((Transaction.Function<Void>) transaction -> {
-            transaction.update(userDocRef, "isBanned", true);
+            transaction.update(userDocRef, "banned", true);
             return null;
         }).addOnSuccessListener(aVoid -> {
             banStatus.postValue("Ban updated successfully");
         });
     }
 
-    public void suspendUser() {
+    public void suspendUser(String endDate) {
         User user = userLiveData.getValue();
         if (user == null) return;
 
         user.setSuspended(true);
+        user.setSuspensionEndDate(endDate);
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("suspended", true);
+        updates.put("suspensionEndDate", endDate);
+
+        db.runTransaction(transaction -> {
+            transaction.update(userDocRef, updates);
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            banStatus.postValue("Suspension updated successfully");
+        }).addOnFailureListener(e -> {
+            banStatus.postValue("Error updating suspension");
+        });
     }
 }

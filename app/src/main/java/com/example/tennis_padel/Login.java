@@ -33,6 +33,20 @@ public class Login extends AppCompatActivity {
 
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
         initUI();
+
+        // Observe the ban status
+        loginViewModel.isUserBanned.observe(this, banned -> {
+            if (banned) {
+                Toast.makeText(Login.this, "Your account has been banned.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Observe the ban status
+        loginViewModel.isUserSuspended.observe(this, suspended -> {
+            if (suspended) {
+                Toast.makeText(Login.this, "Your account has been suspended.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void initUI() {
