@@ -25,19 +25,25 @@ import com.google.android.material.textview.MaterialTextView;
 
 public class ProfileFragment extends Fragment {
 
-    private TextInputEditText name, lastName, bio;
+    private TextInputEditText name, lastName, bio, labelText;
     private MaterialTextView wins, losses, rank;
     private RatingBar  ratingBar;
-    private ImageView profileImage;
+    private ImageView profileImage, labelPicture;
     private ProfileViewModel viewModel;
-    private boolean isEditMode;
+    private boolean isEditMode, isAdmin;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private Uri selectedImageUri;
+    private User currentUser;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_profile, container, false);
+        currentUser = UserDataRepository.getInstance().getUser();
+        isAdmin = currentUser.getRole() == Role.ADMIN;
+        if(isAdmin)
+            return inflater.inflate(R.layout.fragment_admin_profile, container, false);
+        else
+            return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
     @Override
@@ -45,12 +51,62 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
-        setupViews(view);
-        setupImagePicker();
-        loadUserProfile();
-        setupEditButton(view.findViewById(R.id.edit));
-        setupLogoutButton(view.findViewById(R.id.logout));
-        notificationButton(view.findViewById(R.id.notifications));
+        if (!isAdmin) {
+            setupViews(view);
+            setupImagePicker();
+            loadUserProfile();
+            setupEditButton(view.findViewById(R.id.edit));
+            setupLogoutButton(view.findViewById(R.id.logout));
+            notificationButton(view.findViewById(R.id.notifications));
+        }else{
+            setupAdminViews(view);
+            setupAdminImagePicker();
+            setupLogoutButton(view.findViewById(R.id.logout));
+            setupEditLabelButton(view.findViewById(R.id.buttonEditLabel));
+        }
+    }
+
+    private void setupAdminViews(View view) {
+        labelText = view.findViewById(R.id.labelText);
+        labelPicture = view.findViewById(R.id.labelPicture);
+        labelPicture.setOnClickListener(v -> {
+            if (isEditMode) {
+                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.setType("image/*");
+                imagePickerLauncher.launch(intent);
+            }
+        });
+    }
+
+    private void setupAdminImagePicker() {
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                selectedImageUri = result.getData().getData(); // Store the URI
+                Glide.with(requireContext())
+                        .load(selectedImageUri)
+                        .apply(RequestOptions.circleCropTransform())
+                        .into(labelPicture);
+            }
+        });
+    }
+
+    private void setupEditLabelButton(MaterialButton editButton) {
+        isEditMode = false;
+        updateEditMode();
+        editButton.setOnClickListener(view -> {
+            isEditMode = !isEditMode;
+            editButton.setText(isEditMode ? "Save" : "Edit");
+            updateEditMode();
+
+            if (!isEditMode) {
+                if (selectedImageUri != null) {
+                    selectedImageUri = null; // Clear the URI after updating
+                } else {
+                    if (labelText.getText() != null) {
+                    }
+                }
+            }
+        });
     }
 
     private void setupViews(View view) {
@@ -138,12 +194,17 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateEditMode() {
-        name.setFocusable(isEditMode);
-        name.setFocusableInTouchMode(isEditMode);
-        lastName.setFocusable(isEditMode);
-        lastName.setFocusableInTouchMode(isEditMode);
-        bio.setFocusable(isEditMode);
-        bio.setFocusableInTouchMode(isEditMode);
+        if (!isAdmin){
+            name.setFocusable(isEditMode);
+            name.setFocusableInTouchMode(isEditMode);
+            lastName.setFocusable(isEditMode);
+            lastName.setFocusableInTouchMode(isEditMode);
+            bio.setFocusable(isEditMode);
+            bio.setFocusableInTouchMode(isEditMode);
+        }else{
+            labelText.setFocusable(isEditMode);
+            labelText.setFocusableInTouchMode(isEditMode);
+        }
     }
 
     private void loadUserProfile() {
