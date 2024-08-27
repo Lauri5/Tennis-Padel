@@ -80,12 +80,13 @@ public class OtherProfileFragment extends Fragment {
         MaterialButton reportButton = view.findViewById(R.id.report);
         MaterialButton starButton = view.findViewById(R.id.starButton);
         Spinner spinnerReport = view.findViewById(R.id.spinnerReport);
-        MaterialTextView repTextView = view.findViewById(R.id.repProfile);
         RecyclerView reportsRecyclerView = view.findViewById(R.id.reportsRecyclerView);
         MaterialButton winsPlus = view.findViewById(R.id.winsPlus);
         MaterialButton lossesPlus = view.findViewById(R.id.lossesPlus);
         MaterialButton winsMinus = view.findViewById(R.id.winsMinus);
         MaterialButton lossesMinus = view.findViewById(R.id.lossesMinus);
+        MaterialButton banButton = view.findViewById(R.id.banButton);
+        MaterialButton suspendButton = view.findViewById(R.id.suspendButton);
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         User currentUser = UserDataRepository.getInstance().getUser();
@@ -129,6 +130,8 @@ public class OtherProfileFragment extends Fragment {
                         lossesPlus.setVisibility(View.VISIBLE);
                         winsMinus.setVisibility(View.VISIBLE);
                         lossesMinus.setVisibility(View.VISIBLE);
+                        banButton.setVisibility(View.VISIBLE);
+                        suspendButton.setVisibility(View.VISIBLE);
 
                         ratingBar.setIsIndicator(true);
 
@@ -189,7 +192,7 @@ public class OtherProfileFragment extends Fragment {
             });
         }
 
-        // Admin-specific functionality for adjusting wins and losses
+        // Admin-specific functionality
         winsPlus.setOnClickListener(v -> {
             viewModel.incrementWins();
             refreshRank(winsTextView, lossesTextView, rankTextView);
@@ -210,11 +213,23 @@ public class OtherProfileFragment extends Fragment {
             refreshRank(winsTextView, lossesTextView, rankTextView);
         });
 
+        banButton.setOnClickListener(v -> {
+            viewModel.banUser();
+        });
+
+        suspendButton.setOnClickListener(v -> {
+            viewModel.suspendUser();
+        });
+
         viewModel.getRatingStatus().observe(getViewLifecycleOwner(), status -> {
             Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
         });
 
         viewModel.getReportStatus().observe(getViewLifecycleOwner(), status -> {
+            Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
+        });
+
+        viewModel.getBanStatus().observe(getViewLifecycleOwner(), status -> {
             Toast.makeText(getContext(), status, Toast.LENGTH_SHORT).show();
         });
 

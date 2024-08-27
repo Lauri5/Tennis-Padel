@@ -45,7 +45,11 @@ public class MainViewModel extends ViewModel {
         List<String> allowedRoles = Arrays.asList("STUDENT", "TEACHER");
 
         // Use the 'whereIn' clause to filter documents by roles
-        db.collection("users").whereIn("role", allowedRoles).get()
+        db.collection("users")
+                .whereIn("role", allowedRoles)
+                .whereEqualTo("isBanned", false)
+                .whereEqualTo("isSuspended", false)
+                .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         QuerySnapshot result = task.getResult();

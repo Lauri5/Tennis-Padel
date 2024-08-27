@@ -2,7 +2,6 @@ package com.example.tennis_padel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 enum Role {
@@ -21,22 +20,49 @@ enum Report{
 }
 
 public class User implements Serializable {
-    private String id, email, name, lastName, bio, profilePicture;
+    private String id, email, name, lastName, bio, profilePicture, suspensionEndDate;
     private int wins, losses, ratingRank;
     private HashMap<String, Report> reports;
     private ArrayList<Reservation> reservations;
     private HashMap<String, Float> voters;
     private Role role;
     private HashMap<String, ArrayList<String>> availability;
+    private boolean isBanned, isSuspended;
 
     public User(String id, String email) {
         this.id = id;
         this.email = email;
         this.role = Role.STUDENT;
         this.profilePicture = "https://firebasestorage.googleapis.com/v0/b/tennis-padel-85718.appspot.com/o/ProfilePlaceHolder.png?alt=media&token=0fdd99d6-c24a-47bf-9a1c-336883cf5fc9";
+        this.isBanned = false;
+        this.isSuspended = false;
     }
 
     public User() {
+    }
+
+    public boolean isBanned() {
+        return isBanned;
+    }
+
+    public void setBanned(boolean banned) {
+        isBanned = banned;
+    }
+
+    public boolean isSuspended() {
+        return isSuspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        isSuspended = suspended;
+    }
+
+    public String getSuspensionEndDate() {
+        return suspensionEndDate;
+    }
+
+    public void setSuspensionEndDate(String suspensionEndDate) {
+        this.suspensionEndDate = suspensionEndDate;
     }
 
     public Role getRole() {

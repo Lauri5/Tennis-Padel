@@ -1,6 +1,7 @@
 package com.example.tennis_padel;
 
 import android.app.Application;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -24,6 +25,7 @@ public class OtherProfileViewModel extends AndroidViewModel {
     private final MutableLiveData<Float> lastRating = new MutableLiveData<>(0f);
     private final MutableLiveData<String> reportStatus = new MutableLiveData<>();
     private final MutableLiveData<String> ratingStatus = new MutableLiveData<>();
+    private final MutableLiveData<String> banStatus = new MutableLiveData<>();
 
     public OtherProfileViewModel(@NonNull Application application) {
         super(application);
@@ -52,6 +54,10 @@ public class OtherProfileViewModel extends AndroidViewModel {
 
     public LiveData<String> getRatingStatus() {
         return ratingStatus;
+    }
+
+    public LiveData<String> getBanStatus() {
+        return banStatus;
     }
 
     public void submitRating(String userId, float rating) {
@@ -197,5 +203,25 @@ public class OtherProfileViewModel extends AndroidViewModel {
             transaction.update(userDocRef, "losses", user.getLosses());
             return null;
         });
+    }
+
+    public void banUser() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        DocumentReference userDocRef = db.collection("users").document(user.getId());
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            transaction.update(userDocRef, "isBanned", true);
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            banStatus.postValue("Ban updated successfully");
+        });
+    }
+
+    public void suspendUser() {
+        User user = userLiveData.getValue();
+        if (user == null) return;
+
+        user.setSuspended(true);
     }
 }
