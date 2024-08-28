@@ -1,14 +1,18 @@
 package com.example.tennis_padel;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -111,5 +115,81 @@ public class MainViewModel extends ViewModel {
     // LiveData to observe the list of all users
     public LiveData<List<User>> getAllUsersLiveData() {
         return allUsersLiveData;
+    }
+
+    public void removePastReservations() {
+        // Get the current date with time set to the start of the day (00:00)
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());
+        String currentDateStr = sdf.format(new Date());
+
+        // Remove old reservations from users collection
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            User user = document.toObject(User.class);
+                            if (user != null && user.getReservations() != null) {
+                                ArrayList<Reservation> reservationsToRemove = new ArrayList<>();
+                                for (Reservation reservation : user.getReservations()) {
+                                    String reservationDateStr = reservation.getDateTime().split("-")[0]; // Extract the date part
+                                    try {
+                                        Date reservationDate = sdf.parse(reservationDateStr);
+                                        Date currentDate = sdf.parse(currentDateStr);
+                                        if (reservationDate != null && reservationDate.before(currentDate)) {
+                                            reservationsToRemove.add(reservation); // Mark reservation for deletion
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("MainViewModel", "Error parsing reservation date", e);
+                                    }
+                                }
+                                if (!reservationsToRemove.isEmpty()) {
+                                    user.getReservations().removeAll(reservationsToRemove);
+                                    db.collection("users").document(user.getId())
+                                            .update("reservations", user.getReservations())
+                                            .addOnSuccessListener(aVoid -> Log.d("MainViewModel", "Old reservations removed from user " + user.getId()))
+                                            .addOnFailureListener(e -> Log.e("MainViewModel", "Error removing reservations for user " + user.getId(), e));
+                                }
+                            }
+                        }
+                    } else {
+                        Log.e("MainViewModel", "Error getting users documents: ", task.getException());
+                    }
+                });
+
+        // Remove old reservations from courts collection
+        db.collection("courts")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Court court = document.toObject(Court.class);
+                            if (court != null && court.getReservations() != null) {
+                                ArrayList<Reservation> reservationsToRemove = new ArrayList<>();
+                                for (Reservation reservation : court.getReservations()) {
+                                    String reservationDateStr = reservation.getDateTime().split("-")[0]; // Extract the date part
+                                    try {
+                                        Date reservationDate = sdf.parse(reservationDateStr);
+                                        Date currentDate = sdf.parse(currentDateStr);
+                                        if (reservationDate != null && reservationDate.before(currentDate)) {
+                                            reservationsToRemove.add(reservation); // Mark reservation for deletion
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("MainViewModel", "Error parsing reservation date", e);
+                                    }
+                                }
+                                if (!reservationsToRemove.isEmpty()) {
+                                    court.getReservations().removeAll(reservationsToRemove);
+                                    db.collection("courts").document(court.getId())
+                                            .update("reservations", court.getReservations())
+                                            .addOnSuccessListener(aVoid -> Log.d("MainViewModel", "Old reservations removed from court " + court.getId()))
+                                            .addOnFailureListener(e -> Log.e("MainViewModel", "Error removing reservations for court " + court.getId(), e));
+                                }
+                            }
+                        }
+                    } else {
+                        Log.e("MainViewModel", "Error getting courts documents: ", task.getException());
+                    }
+                });
     }
 }

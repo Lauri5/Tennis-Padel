@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize ViewModel
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel.removePastReservations();
 
         // Check if user is logged in
         if (!viewModel.userLoggedIn()) {
