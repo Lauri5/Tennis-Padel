@@ -243,7 +243,10 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.navigation_profile) {
                 selectedFragment = new ProfileFragment();
             } else if (itemId == R.id.navigation_book_lesson) {
-                selectedFragment = new BookLessonFragment();
+                if (UserDataRepository.getInstance().getUser().getRole() == Role.ADMIN)
+                    selectedFragment = new TeacherAdminFragment();
+                else
+                    selectedFragment = new BookLessonFragment();
             }
 
             if (selectedFragment != null) {
