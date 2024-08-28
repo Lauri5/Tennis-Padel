@@ -1,9 +1,11 @@
 package com.example.tennis_padel;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +21,13 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class ProfileFragment extends Fragment {
 
@@ -34,6 +40,7 @@ public class ProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private Uri selectedImageUri;
     private User currentUser;
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -69,6 +76,12 @@ public class ProfileFragment extends Fragment {
     private void setupAdminViews(View view) {
         labelText = view.findViewById(R.id.labelText);
         labelPicture = view.findViewById(R.id.labelPicture);
+
+        Glide.with(this)
+                .load(UserDataRepository.getInstance().getClub().getClubLogo())
+                .circleCrop()
+                .into(labelPicture);
+
         labelPicture.setOnClickListener(v -> {
             if (isEditMode) {
                 Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -84,7 +97,7 @@ public class ProfileFragment extends Fragment {
                 selectedImageUri = result.getData().getData(); // Store the URI
                 Glide.with(requireContext())
                         .load(selectedImageUri)
-                        .apply(RequestOptions.circleCropTransform())
+                        .circleCrop()
                         .into(labelPicture);
             }
         });
@@ -99,11 +112,20 @@ public class ProfileFragment extends Fragment {
             updateEditMode();
 
             if (!isEditMode) {
+                Activity activity = getActivity();
+
                 if (selectedImageUri != null) {
-                    selectedImageUri = null; // Clear the URI after updating
+                    // If a new image was selected, upload it and then update the user data
+                    viewModel.uploadImageLabelToFirebase(selectedImageUri, imageUrl -> {
+                        viewModel.updateImage(imageUrl);
+                        viewModel.updateLabel(labelText.getText().toString().trim());
+                        if (activity instanceof MainActivity) {
+                            ((MainActivity) activity).setClubLogo();
+                        }
+                        selectedImageUri = null; // Clear the URI after updating
+                    });
                 } else {
-                    if (labelText.getText() != null) {
-                    }
+                    viewModel.updateLabel(labelText.getText().toString().trim());
                 }
             }
         });
@@ -133,7 +155,7 @@ public class ProfileFragment extends Fragment {
                 selectedImageUri = result.getData().getData(); // Store the URI
                 Glide.with(requireContext())
                         .load(selectedImageUri)
-                        .apply(RequestOptions.circleCropTransform())
+                        .circleCrop()
                         .into(profileImage);
             }
         });

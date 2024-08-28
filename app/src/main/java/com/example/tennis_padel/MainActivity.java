@@ -7,6 +7,8 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,9 +16,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
@@ -27,11 +29,17 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -39,6 +47,7 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private ImageView clubLogo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +60,15 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Hide the ActionBar if it's present
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
+        Club club = new Club();
+        UserDataRepository.getInstance().setClub(club);
+        setClubLogo();
 
         // Initialize ViewModel
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
@@ -260,5 +278,28 @@ public class MainActivity extends AppCompatActivity {
         if (imm != null) {
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+
+    public void setClubLogo() {
+        clubLogo = findViewById(R.id.action_bar_logo);
+        MaterialTextView clubName = findViewById(R.id.action_bar_title);
+
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference storageRef = storage.getReference().child("admin.jpg");
+
+        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                // This is called once the download URL is available
+                String imageUrl = uri.toString();
+                UserDataRepository.getInstance().getClub().setClubLogo(imageUrl);
+
+                // Use Glide to load the image
+                Glide.with(MainActivity.this)
+                        .load(imageUrl)
+                        .circleCrop()
+                        .into(clubLogo);
+            }
+        });
     }
 }
