@@ -5,6 +5,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -128,9 +130,11 @@ public class ProfileFragment extends Fragment {
                     });
                 } else {
                     viewModel.updateLabel(labelText.getText().toString());
-                    if (activity instanceof MainActivity) {
-                        ((MainActivity) activity).manageActionBar();
-                    }
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (activity instanceof MainActivity) {
+                            ((MainActivity) activity).manageActionBar();
+                        }
+                    }, 500);
                 }
             }
         });

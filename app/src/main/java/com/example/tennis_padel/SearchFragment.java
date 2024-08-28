@@ -22,7 +22,7 @@ public class SearchFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchView);
-        searchView.setIconifiedByDefault(false); // Make sure it's fully expanded
+        searchView.setIconifiedByDefault(false); // Makes sure it's fully expanded
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -54,6 +54,11 @@ public class SearchFragment extends Fragment {
         });
 
         // Load all users data
+        viewModel.getAllUsersLiveData().observe(getViewLifecycleOwner(), users -> {
+            if (users != null) {
+                userAdapter.sortUserList(users);
+            }
+        });
         viewModel.loadAllUsers();
 
         return view;
