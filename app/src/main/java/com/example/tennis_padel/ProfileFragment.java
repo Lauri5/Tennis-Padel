@@ -76,9 +76,12 @@ public class ProfileFragment extends Fragment {
     private void setupAdminViews(View view) {
         labelText = view.findViewById(R.id.labelText);
         labelPicture = view.findViewById(R.id.labelPicture);
+        Club club = UserDataRepository.getInstance().getClub();
+
+        labelText.setText(club.getClubName());
 
         Glide.with(this)
-                .load(UserDataRepository.getInstance().getClub().getClubLogo())
+                .load(club.getClubLogo())
                 .circleCrop()
                 .into(labelPicture);
 
@@ -115,17 +118,19 @@ public class ProfileFragment extends Fragment {
                 Activity activity = getActivity();
 
                 if (selectedImageUri != null) {
-                    // If a new image was selected, upload it and then update the user data
                     viewModel.uploadImageLabelToFirebase(selectedImageUri, imageUrl -> {
                         viewModel.updateImage(imageUrl);
-                        viewModel.updateLabel(labelText.getText().toString().trim());
+                        viewModel.updateLabel(labelText.getText().toString());
                         if (activity instanceof MainActivity) {
-                            ((MainActivity) activity).setClubLogo();
+                            ((MainActivity) activity).manageActionBar();
                         }
                         selectedImageUri = null; // Clear the URI after updating
                     });
                 } else {
-                    viewModel.updateLabel(labelText.getText().toString().trim());
+                    viewModel.updateLabel(labelText.getText().toString());
+                    if (activity instanceof MainActivity) {
+                        ((MainActivity) activity).manageActionBar();
+                    }
                 }
             }
         });

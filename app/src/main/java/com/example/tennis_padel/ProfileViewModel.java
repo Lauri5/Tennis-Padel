@@ -14,6 +14,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.nio.charset.StandardCharsets;
 
 public class ProfileViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -36,7 +39,12 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public void updateLabel(String label){
+        byte[] data = label.getBytes(StandardCharsets.UTF_8);
 
+        StorageReference fileRef = storage.getReference().child("title.txt");
+
+        UploadTask uploadTask = fileRef.putBytes(data);
+        uploadTask.addOnSuccessListener(taskSnapshot -> UserDataRepository.getInstance().getClub().setClubName(label));
     }
 
     public void updateImage(String image){

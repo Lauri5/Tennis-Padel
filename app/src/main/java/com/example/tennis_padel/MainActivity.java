@@ -30,7 +30,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textview.MaterialTextView;
@@ -41,14 +40,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    private ImageView clubLogo;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
         Club club = new Club();
         UserDataRepository.getInstance().setClub(club);
-        setClubLogo();
+        manageActionBar();
 
         // Initialize ViewModel
         MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
@@ -280,26 +278,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setClubLogo() {
-        clubLogo = findViewById(R.id.action_bar_logo);
+    public void manageActionBar() {
+        ImageView clubLogo = findViewById(R.id.action_bar_logo);
         MaterialTextView clubName = findViewById(R.id.action_bar_title);
+        Club club = UserDataRepository.getInstance().getClub();
 
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference().child("admin.jpg");
 
-        storageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-            @Override
-            public void onSuccess(Uri uri) {
-                // This is called once the download URL is available
-                String imageUrl = uri.toString();
-                UserDataRepository.getInstance().getClub().setClubLogo(imageUrl);
+        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+            // This is called once the download URL is available
+            String imageUrl = uri.toString();
+            club.setClubLogo(imageUrl);
 
-                // Use Glide to load the image
-                Glide.with(MainActivity.this)
-                        .load(imageUrl)
-                        .circleCrop()
-                        .into(clubLogo);
-            }
+            // Use Glide to load the image
+            Glide.with(MainActivity.this)
+                    .load(club.getClubLogo())
+                    .circleCrop()
+                    .into(clubLogo);
+        });
+
+        StorageReference fileRef = storage.getReference().child("title.txt");
+
+        fileRef.getBytes(100).addOnSuccessListener(bytes -> {
+            // Convert bytes data back to string
+            String downloadedText = new String(bytes, StandardCharsets.UTF_8);
+            club.setClubName(downloadedText);
+            clubName.setText(downloadedText);
         });
     }
 }
