@@ -19,9 +19,14 @@ public class MainViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final MutableLiveData<List<User>> allUsersLiveData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isUserBannedLiveData = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
 
     public LiveData<Boolean> getIsUserBannedLiveData() {
         return isUserBannedLiveData;
+    }
+
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
     }
 
     public void checkUserBanStatus() {
@@ -63,6 +68,7 @@ public class MainViewModel extends ViewModel {
     public void loadUserData() {
         FirebaseUser firebaseUser = getCurrentUser();
         if (firebaseUser != null) {
+            isLoading.setValue(true);  // Signal that loading has started
             db.collection("users").document(firebaseUser.getUid())
                     .get()
                     .addOnCompleteListener(task -> {
@@ -70,9 +76,11 @@ public class MainViewModel extends ViewModel {
                             // Handle user data received
                             UserDataRepository.getInstance().setUser(task.getResult().toObject(User.class));
                         }
+                        isLoading.setValue(false);  // Signal that loading has finished
                     });
         }
     }
+
 
     public boolean userLoggedIn() {
         return getCurrentUser() != null;

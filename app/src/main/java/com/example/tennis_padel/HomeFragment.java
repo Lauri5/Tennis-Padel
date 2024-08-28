@@ -1,11 +1,12 @@
 package com.example.tennis_padel;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,10 +25,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.UUID;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.widget.Button;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
@@ -36,12 +41,14 @@ public class HomeFragment extends Fragment {
     private CourtAdapter courtAdapter;
     private List<Court> courtList = new ArrayList<>();
     private MainViewModel viewModel;
-    private FirebaseFirestore db;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();;
     private MaterialTextView selectedDateTextView;
     private Calendar currentDate;
     private UserAdapter userAdapter;
-    private Button datePickerButton;
-    private Button timePickerButton;
+    private MaterialButton datePickerButton, timePickerButton, addButton, editButton, deleteButton;
+    private User currentUser;
+    private boolean isAdmin;
+    private Court selectedCourt;
 
     // Selected date and time
     private Calendar selectedDateTime = Calendar.getInstance();
@@ -51,43 +58,175 @@ public class HomeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        View view;
+        currentUser = UserDataRepository.getInstance().getUser();
+        isAdmin = (currentUser != null && currentUser.getRole() == Role.ADMIN);
+
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        selectedDateTextView = view.findViewById(R.id.selected_date_textview);
-        // Initialize Firestore
-        db = FirebaseFirestore.getInstance();
+        if (isAdmin){
+            view = inflater.inflate(R.layout.fragment_admin_home, container, false);
+            loadAdminUI(view);
+        }
+        else{
+            view = inflater.inflate(R.layout.fragment_home, container, false);
+            loadNoAdminUI(view);
+        }
 
         // Initialize RecyclerViews
         courtRecyclerView = view.findViewById(R.id.courtView);
-
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         courtRecyclerView.setLayoutManager(gridLayoutManager);
 
-        // Initialize buttons
-        datePickerButton = view.findViewById(R.id.datePickerButton);
-        timePickerButton = view.findViewById(R.id.timePickerButton);
-        timePickerButton.setEnabled(false); // Disable time picker initially
-
-        // Set up adapters
-        courtAdapter = new CourtAdapter(courtList, getParentFragmentManager(), selectedDateTime);
+        if (isAdmin) {
+            // Admin view: allow selection
+            courtAdapter = new CourtAdapter(courtList, selectedCourt -> {
+                this.selectedCourt = selectedCourt;
+                Toast.makeText(getContext(), "Court " + selectedCourt.getName() + " selected.", Toast.LENGTH_SHORT).show();
+                // Further logic for selected court
+            });
+        } else {
+            courtAdapter = new CourtAdapter(courtList, getParentFragmentManager(), selectedDateTime);
+        }
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         userAdapter = new UserAdapter(getContext(), new ArrayList<>(), null, true); // Start with an empty list
         recyclerView.setAdapter(userAdapter);
-
         courtRecyclerView.setAdapter(courtAdapter);
+
+        loadRankData();
+
+        return view;
+    }
+
+    private void loadNoAdminUI(View view){
+        selectedDateTextView = view.findViewById(R.id.selected_date_textview);
+
+        // Initialize buttons
+        datePickerButton = view.findViewById(R.id.datePickerButton);
+        timePickerButton = view.findViewById(R.id.timePickerButton);
 
         // Date picker listener
         datePickerButton.setOnClickListener(v -> showDatePicker());
 
         // Time picker listener
         timePickerButton.setOnClickListener(v -> showTimePicker());
+    }
 
-        loadRankData();
+    private Map<String, String> getCourtTypeMapping() {
+        Map<String, String> courtTypeMapping = new HashMap<>();
+        courtTypeMapping.put("TENNIS_INDOOR", "Indoor Tennis");
+        courtTypeMapping.put("TENNIS_OUTDOOR", "Outdoor Tennis");
+        courtTypeMapping.put("PADEL_INDOOR", "Indoor Padel");
+        courtTypeMapping.put("PADEL_OUTDOOR", "Outdoor Padel");
+        return courtTypeMapping;
+    }
 
-        return view;
+    private void setupCourtTypeSpinner(Spinner spinner) {
+        Map<String, String> courtTypeMapping = getCourtTypeMapping();
+        List<String> displayNames = new ArrayList<>(courtTypeMapping.values());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, displayNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+    public String getKeyByValue(Map<String, String> map, String value) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            if (value.equals(entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null;  // Return null if no key found
+    }
+
+    private void loadAdminUI(View view) {
+        addButton = view.findViewById(R.id.addButton);
+        editButton = view.findViewById(R.id.editButton);
+        deleteButton = view.findViewById(R.id.deleteButton);
+        loadCourtAdmin();
+
+        addButton.setOnClickListener(v -> showCourtDialog(null));
+        editButton.setOnClickListener(v -> {
+            // Obtain selected court logic
+            if (selectedCourt != null) {
+                showCourtDialog(selectedCourt);
+            } else {
+                Toast.makeText(getContext(), "No court selected for editing.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        deleteButton.setOnClickListener(v -> {
+            // Obtain selected court logic
+            if (selectedCourt != null) {
+                deleteCourt(selectedCourt.getId());
+            } else {
+                Toast.makeText(getContext(), "No court selected to delete.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showCourtDialog(Court existingCourt) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(existingCourt == null ? "Add New Court" : "Edit Court");
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_court, null);
+        builder.setView(dialogView);
+
+        EditText editTextName = dialogView.findViewById(R.id.editTextCourtName);
+        Spinner spinnerType = dialogView.findViewById(R.id.spinnerCourtType);
+
+        if (existingCourt != null) {
+            editTextName.setText(existingCourt.getName());
+            // Set spinner value to existing court type
+        }
+
+        setupCourtTypeSpinner(spinnerType);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String courtName = editTextName.getText().toString();
+            String selectedType = (String) spinnerType.getSelectedItem();
+            String courtTypeCode = getKeyByValue(getCourtTypeMapping(), selectedType);
+
+            if (existingCourt == null) {
+                addNewCourt(courtName, courtTypeCode);
+            } else {
+                updateCourt(existingCourt.getId(), courtName, courtTypeCode);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void addNewCourt(String name, String typeCode) {
+        Court newCourt = new Court(name, CourtType.valueOf(typeCode));
+
+        db.collection("courts").add(newCourt)
+                .addOnSuccessListener(documentReference -> {
+                    String generatedId = documentReference.getId();
+                    newCourt.setId(generatedId); // Set the ID in the Court object
+
+                    // Update the document in Firestore with the ID
+                    documentReference.set(newCourt)
+                            .addOnSuccessListener(aVoid -> {
+                                // Court added successfully with ID
+                                loadCourtAdmin();
+                            });
+                });
+    }
+
+    private void updateCourt(String id, String name, String typeCode) {
+        db.collection("courts").document(id)
+                .update("name", name, "type", typeCode);
+        loadCourtAdmin();
+    }
+
+    private void deleteCourt(String id) {
+        db.collection("courts").document(id).delete();
+        loadCourtAdmin();
     }
 
     private void showDatePicker() {
@@ -140,6 +279,42 @@ public class HomeFragment extends Fragment {
                 true
         );
         timePickerDialog.show();
+    }
+
+    private void loadCourtAdmin(){
+        db.collection("courts")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        courtList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            String id = document.getId();
+                            String name = document.getString("name");
+                            String typeStr = document.getString("type");
+
+                            CourtType type;
+                            switch (typeStr) {
+                                case "TENNIS_INDOOR":
+                                    type = CourtType.TENNIS_INDOOR;
+                                    break;
+                                case "PADEL_OUTDOOR":
+                                    type = CourtType.PADEL_OUTDOOR;
+                                    break;
+                                case "PADEL_INDOOR":
+                                    type = CourtType.PADEL_INDOOR;
+                                    break;
+                                default:
+                                    type = CourtType.TENNIS_OUTDOOR;
+                                    break;
+                            }
+
+                            Court court = new Court(id, name, type);
+                            court.setReservations(loadReservations(document));
+                            courtList.add(court);
+                        }
+                        courtAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     private void loadCourtData() {

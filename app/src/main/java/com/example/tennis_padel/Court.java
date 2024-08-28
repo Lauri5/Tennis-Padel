@@ -36,6 +36,12 @@ public class Court implements Serializable {
         this.reservations = new ArrayList<>();
     }
 
+    public Court(String name, CourtType type) {
+        this.name = name;
+        this.type = type;
+        this.reservations = new ArrayList<>();
+    }
+
     // Getters and Setters
     public String getId() {
         return id;

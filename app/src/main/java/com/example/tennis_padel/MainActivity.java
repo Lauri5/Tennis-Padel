@@ -94,7 +94,12 @@ public class MainActivity extends AppCompatActivity {
             viewModel.checkUserBanStatus();  // Check if the user is banned
         }
 
-        setupNavigation();
+        // Observe the loading status to decide when to set up navigation
+        viewModel.getIsLoading().observe(this, isLoading -> {
+            if (isLoading != null && !isLoading) {
+                setupNavigation(); // Call setupNavigation when loading is complete
+            }
+        });
     }
 
     @Override
