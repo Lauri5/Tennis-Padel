@@ -2,6 +2,7 @@ package com.example.tennis_padel;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,6 +91,7 @@ public class OtherProfileFragment extends Fragment {
         MaterialButton lossesMinus = view.findViewById(R.id.lossesMinus);
         MaterialButton banButton = view.findViewById(R.id.banButton);
         MaterialButton suspendButton = view.findViewById(R.id.suspendButton);
+        bioTextView.setMovementMethod(new ScrollingMovementMethod());
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         User currentUser = UserDataRepository.getInstance().getUser();

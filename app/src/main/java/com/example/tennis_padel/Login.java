@@ -69,6 +69,7 @@ public class Login extends AppCompatActivity {
         loginViewModel.userAuthenticated.observe(this, isAuthenticated -> {
             if (isAuthenticated) {
                 startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                UserDataRepository.getInstance().setIsFromLogin(true);
                 finish();
             }
         });

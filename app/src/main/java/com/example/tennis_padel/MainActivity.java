@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        requestNotificationPermission();
+
         Club club = new Club();
         UserDataRepository.getInstance().setClub(club);
         manageActionBar();
@@ -95,12 +97,25 @@ public class MainActivity extends AppCompatActivity {
             viewModel.checkUserBanStatus();  // Check if the user is banned
         }
 
-        // Observe the loading status to decide when to set up navigation
-        viewModel.getIsLoading().observe(this, isLoading -> {
-            if (isLoading != null && !isLoading) {
-                setupNavigation(); // Call setupNavigation when loading is complete
-            }
-        });
+        if (UserDataRepository.getInstance().getIsFromLogin()){
+            // Observe the loading status to decide when to set up navigation
+            viewModel.getIsLoading().observe(this, isLoading -> {
+                if (isLoading != null && !isLoading) {
+                    setupNavigation(); // Call setupNavigation when loading is complete
+                }
+            });
+            UserDataRepository.getInstance().setIsFromLogin(false);
+        }
+        else
+            if (UserDataRepository.getInstance().getUser() == null)
+                // Observe the loading status to decide when to set up navigation
+                viewModel.getIsLoading().observe(this, isLoading -> {
+                    if (isLoading != null && !isLoading) {
+                        setupNavigation(); // Call setupNavigation when loading is complete
+                    }
+                });
+            else
+                setupNavigation();
     }
 
     @Override
@@ -229,6 +244,14 @@ public class MainActivity extends AppCompatActivity {
         }
         // Step 3: Show the notification
         notificationManager.notify(2, builder.build());
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
     }
 
     private void setupNavigation() {

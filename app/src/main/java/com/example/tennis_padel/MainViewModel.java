@@ -85,7 +85,6 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-
     public boolean userLoggedIn() {
         return getCurrentUser() != null;
     }

@@ -298,7 +298,6 @@ public class BookLessonFragment extends Fragment {
     private void bookLessonWithTeacher(User teacher) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String reservationId = userId + "-" + formatDateTime(selectedDateTime.getTime());
-
         db.runTransaction(transaction -> {
             // Get references to the court, user, and teacher documents
             DocumentReference courtRef = db.collection("courts").document(selectedCourt.getId());
@@ -309,6 +308,9 @@ public class BookLessonFragment extends Fragment {
 
             DocumentReference teacherRef = db.collection("users").document(teacher.getId());
             User updatedTeacher = transaction.get(teacherRef).toObject(User.class);
+
+            if (!isTeacherAvailable(updatedTeacher, selectedDateTime.getTime()))
+                throw new FirebaseFirestoreException("Teacher is no longer available", FirebaseFirestoreException.Code.ABORTED);
 
             if (court != null && user != null && updatedTeacher != null) {
                 // Initialize reservations lists if they are null
@@ -347,16 +349,21 @@ public class BookLessonFragment extends Fragment {
                 String hour = new SimpleDateFormat("HH", Locale.getDefault()).format(selectedDateTime.getTime());
                 updatedTeacher.removeAvailability(formattedDate, hour);
                 transaction.update(teacherRef, "availability", updatedTeacher.getAvailability());
-
             } else {
                 throw new FirebaseFirestoreException("Court, User, or Teacher not found.", FirebaseFirestoreException.Code.ABORTED);
             }
-
             return null;
         }).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Lesson booked successfully!", Toast.LENGTH_SHORT).show();
         }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Failed to book lesson: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            if (e instanceof FirebaseFirestoreException) {
+                FirebaseFirestoreException fe = (FirebaseFirestoreException) e;
+                if (fe.getCode() == FirebaseFirestoreException.Code.ABORTED && fe.getMessage().contains("Teacher is no longer available")) {
+                    Toast.makeText(getContext(), "Teacher is no longer available", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Transaction failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
         });
     }
 

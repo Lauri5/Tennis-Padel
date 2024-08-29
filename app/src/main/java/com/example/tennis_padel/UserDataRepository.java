@@ -4,6 +4,7 @@ public class UserDataRepository {
     private static UserDataRepository instance;
     private User user;
     private Club club;
+    private boolean isFromLogin = false;
 
     private UserDataRepository() {}
 
@@ -13,6 +14,9 @@ public class UserDataRepository {
         }
         return instance;
     }
+    public void setIsFromLogin(boolean isFromLogin){ this.isFromLogin = isFromLogin; }
+
+    public boolean getIsFromLogin(){ return isFromLogin; }
 
     public User getUser() {
         return user;

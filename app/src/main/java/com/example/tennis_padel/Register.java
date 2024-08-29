@@ -54,7 +54,8 @@ public class Register extends AppCompatActivity {
         // If user is authenticated the main activity gets selected
         registerViewModel.userRegistered.observe(this, isRegistered -> {
             if (isRegistered) {
-                startActivity(new Intent(getApplicationContext(), Login.class));
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                UserDataRepository.getInstance().setIsFromLogin(true);
                 finish();
             }
         });
