@@ -6,9 +6,9 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageRank"
-        android:layout_marginEnd="10dp"
         android:layout_width="27dp"
-        android:layout_height="27dp"/>
+        android:layout_height="27dp"
+        android:layout_marginEnd="10dp" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/user_name"

@@ -25,10 +25,10 @@
         android:layout_height="0dp"
         android:layout_marginTop="6dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/ratingBarOther"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ratingBarOther" />
 
 
     <com.google.android.material.button.MaterialButton
@@ -36,8 +36,8 @@
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:background="@drawable/ic_minus"
-        app:backgroundTint="#FF0000"
         android:visibility="gone"
+        app:backgroundTint="#FF0000"
         app:layout_constraintBottom_toBottomOf="@+id/winsPlus"
         app:layout_constraintEnd_toEndOf="@+id/nameProfileOther"
         app:layout_constraintTop_toTopOf="@+id/winsPlus"
@@ -47,8 +47,8 @@
         android:id="@+id/lossesMinus"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:visibility="gone"
         android:background="@drawable/ic_minus"
+        android:visibility="gone"
         app:backgroundTint="#FF0000"
         app:layout_constraintBottom_toBottomOf="@+id/lossesPlus"
         app:layout_constraintEnd_toEndOf="@+id/nameProfileOther"
@@ -59,8 +59,8 @@
         android:id="@+id/lossesPlus"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:background="@drawable/ic_plus"
         android:layout_marginEnd="8dp"
+        android:background="@drawable/ic_plus"
         android:visibility="gone"
         app:backgroundTint="#00FF00"
         app:layout_constraintBottom_toBottomOf="@+id/lossesNumberOther"
@@ -161,11 +161,11 @@
         app:layout_constraintTop_toBottomOf="@id/profileImageOther" />
 
     <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/nameInProfileOther"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:id="@+id/nameInProfileOther"
-        android:textSize="25sp"
         android:layout_marginTop="8dp"
+        android:textSize="25sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/nameProfileOther" />
@@ -185,9 +185,9 @@
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/lastnameInProfileOther"
         android:layout_width="0dp"
-        android:textSize="25sp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:textSize="25sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/lastNameProfile" />
@@ -209,8 +209,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:maxLines="3"
         android:lines="3"
+        android:maxLines="3"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
