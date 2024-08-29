@@ -102,10 +102,7 @@ public class OtherProfileFragment extends Fragment {
         viewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
             if (currentUserId.equals(user.getId())) {
                 Fragment ProfileFragment = new ProfileFragment();
-                getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, ProfileFragment)
-                        .addToBackStack(null)
-                        .commit();
+                getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, ProfileFragment).addToBackStack(null).commit();
                 BottomNavigationView bottomNavigationView = getActivity().findViewById(R.id.nav_view);
                 bottomNavigationView.setSelectedItemId(R.id.navigation_profile);
             } else {
@@ -118,10 +115,7 @@ public class OtherProfileFragment extends Fragment {
                     rankTextView.setText(String.valueOf(user.getRatingRank()));
                     ratingBar.setRating(user.getRatingRep());
 
-                    Glide.with(requireContext())
-                            .load(user.getProfilePicture())
-                            .circleCrop()
-                            .into(profileImageView);
+                    Glide.with(requireContext()).load(user.getProfilePicture()).circleCrop().into(profileImageView);
 
                     if (currentUser.getRole() == Role.ADMIN) {
                         // Hide unnecessary UI elements for admin

@@ -41,10 +41,7 @@ public class TeacherAdapter extends RecyclerView.Adapter<TeacherAdapter.TeacherV
         holder.teacherName.setText(teacher.getName());
         holder.teacherLastName.setText(teacher.getLastName());
 
-        Glide.with(context)
-                .load(teacher.getProfilePicture())
-                .apply(RequestOptions.circleCropTransform())
-                .into(holder.imageView);
+        Glide.with(context).load(teacher.getProfilePicture()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
 
     }
 

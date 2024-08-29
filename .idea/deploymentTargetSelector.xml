@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="Tennis-Padel">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-08-29T19:51:45.165052500Z">
+        <DropdownSelection timestamp="2024-08-29T20:19:03.915243Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=AF2SVB3621002896" />

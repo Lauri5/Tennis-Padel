@@ -1,6 +1,5 @@
 package com.example.tennis_padel;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +13,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -22,8 +20,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 
 public class TeacherAdminFragment extends Fragment {
 
@@ -61,26 +59,23 @@ public class TeacherAdminFragment extends Fragment {
     }
 
     private void loadTeachers() {
-        db.collection("users")
-                .whereEqualTo("role", Role.TEACHER.toString())
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        teacherList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            User teacher = document.toObject(User.class);
-                            teacherList.add(teacher);
-                        }
-                        teacherAdapter = new TeacherAdapter(teacherList, teacher -> {
-                            selectedTeacher = teacher;
-                            datePickerButton.setEnabled(true);
-                            Toast.makeText(getContext(), "Teacher " + teacher.getName() + " selected.", Toast.LENGTH_SHORT).show();
-                        }, requireContext());
-                        teacherRecyclerView.setAdapter(teacherAdapter);
-                    } else {
-                        Toast.makeText(getContext(), "Failed to load teachers", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        db.collection("users").whereEqualTo("role", Role.TEACHER.toString()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                teacherList.clear();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    User teacher = document.toObject(User.class);
+                    teacherList.add(teacher);
+                }
+                teacherAdapter = new TeacherAdapter(teacherList, teacher -> {
+                    selectedTeacher = teacher;
+                    datePickerButton.setEnabled(true);
+                    Toast.makeText(getContext(), "Teacher " + teacher.getName() + " selected.", Toast.LENGTH_SHORT).show();
+                }, requireContext());
+                teacherRecyclerView.setAdapter(teacherAdapter);
+            } else {
+                Toast.makeText(getContext(), "Failed to load teachers", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showDateRangePicker() {
@@ -146,10 +141,7 @@ public class TeacherAdminFragment extends Fragment {
             current.add(Calendar.DAY_OF_MONTH, 1);
         }
 
-        db.collection("users").document(selectedTeacher.getId())
-                .update("availability", selectedTeacher.getAvailability())
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Availability updated.", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update availability: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        db.collection("users").document(selectedTeacher.getId()).update("availability", selectedTeacher.getAvailability()).addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Availability updated.", Toast.LENGTH_SHORT).show()).addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to update availability: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void removeAvailability() {
@@ -169,9 +161,6 @@ public class TeacherAdminFragment extends Fragment {
             current.add(Calendar.DAY_OF_MONTH, 1);
         }
 
-        db.collection("users").document(selectedTeacher.getId())
-                .update("availability", selectedTeacher.getAvailability())
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Availability removed.", Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to remove availability: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        db.collection("users").document(selectedTeacher.getId()).update("availability", selectedTeacher.getAvailability()).addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Availability removed.", Toast.LENGTH_SHORT).show()).addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to remove availability: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }

@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -52,29 +51,25 @@ public class NotificationFragment extends Fragment {
 
     private void loadNotifications() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        db.collection("invitations")
-                .whereEqualTo("inviteeId", currentUserId)
-                .whereIn("status", Arrays.asList("notified", "full"))
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        invitationsList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Invitation invitation = document.toObject(Invitation.class);
+        db.collection("invitations").whereEqualTo("inviteeId", currentUserId).whereIn("status", Arrays.asList("notified", "full")).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                invitationsList.clear();
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    Invitation invitation = document.toObject(Invitation.class);
 
-                            // Set the Firestore document ID
-                            invitation.setId(document.getId());
+                    // Set the Firestore document ID
+                    invitation.setId(document.getId());
 
-                            // Debugging log to check courtId
-                            Log.d("NotificationFragment", "Court ID: " + invitation.getCourtId());
+                    // Debugging log to check courtId
+                    Log.d("NotificationFragment", "Court ID: " + invitation.getCourtId());
 
-                            invitationsList.add(invitation);
-                        }
-                        notificationAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("NotificationFragment", "Error getting invitations: ", task.getException());
-                    }
-                });
+                    invitationsList.add(invitation);
+                }
+                notificationAdapter.notifyDataSetChanged();
+            } else {
+                Log.e("NotificationFragment", "Error getting invitations: ", task.getException());
+            }
+        });
     }
 
     private void onAcceptClicked(Invitation invitation) {
@@ -89,19 +84,16 @@ public class NotificationFragment extends Fragment {
         addReservation(invitation);
 
         // Remove the invitation from Firestore
-        db.collection("invitations").document(invitation.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    if (!invitation.getStatus().equals("full"))
-                        Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+        db.collection("invitations").document(invitation.getId()).delete().addOnSuccessListener(aVoid -> {
+            if (!invitation.getStatus().equals("full"))
+                Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
 
-                    invitationsList.remove(invitation);
-                    notificationAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("NotificationFragment", "Error deleting invitation: ", e);
-                    Toast.makeText(getContext(), "Failed to decline invitation", Toast.LENGTH_SHORT).show();
-                });
+            invitationsList.remove(invitation);
+            notificationAdapter.notifyDataSetChanged();
+        }).addOnFailureListener(e -> {
+            Log.e("NotificationFragment", "Error deleting invitation: ", e);
+            Toast.makeText(getContext(), "Failed to decline invitation", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void onDeclineClicked(Invitation invitation) {
@@ -113,19 +105,16 @@ public class NotificationFragment extends Fragment {
         }
 
         // Remove the invitation from Firestore
-        db.collection("invitations").document(invitation.getId())
-                .delete()
-                .addOnSuccessListener(aVoid -> {
-                    if (!invitation.getStatus().equals("full"))
-                        Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
+        db.collection("invitations").document(invitation.getId()).delete().addOnSuccessListener(aVoid -> {
+            if (!invitation.getStatus().equals("full"))
+                Toast.makeText(getContext(), "Invitation declined", Toast.LENGTH_SHORT).show();
 
-                    invitationsList.remove(invitation);
-                    notificationAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("NotificationFragment", "Error deleting invitation: ", e);
-                    Toast.makeText(getContext(), "Failed to decline invitation", Toast.LENGTH_SHORT).show();
-                });
+            invitationsList.remove(invitation);
+            notificationAdapter.notifyDataSetChanged();
+        }).addOnFailureListener(e -> {
+            Log.e("NotificationFragment", "Error deleting invitation: ", e);
+            Toast.makeText(getContext(), "Failed to decline invitation", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void addReservation(Invitation invitation) {
@@ -154,18 +143,11 @@ public class NotificationFragment extends Fragment {
                 // Check if the user already has a reservation at the selected time
                 for (Reservation reservation : userReservations) {
                     if (reservation.getDateTime().equals(formattedDateTime) && reservation.getCourtId().equals(court.getId())) {
-                        throw new FirebaseFirestoreException("User already has a reservation at this time.",
-                                FirebaseFirestoreException.Code.ABORTED);
+                        throw new FirebaseFirestoreException("User already has a reservation at this time.", FirebaseFirestoreException.Code.ABORTED);
                     }
                 }
 
-                Reservation newReservation = new Reservation(
-                        reservationId,
-                        court.getId(),
-                        formattedDateTime,
-                        false,
-                        userId
-                );
+                Reservation newReservation = new Reservation(reservationId, court.getId(), formattedDateTime, false, userId);
 
                 reservations.add(newReservation);
                 userReservations.add(newReservation);
@@ -190,8 +172,7 @@ public class NotificationFragment extends Fragment {
                 }
 
             } else {
-                throw new FirebaseFirestoreException("Court or User not found.",
-                        FirebaseFirestoreException.Code.ABORTED);
+                throw new FirebaseFirestoreException("Court or User not found.", FirebaseFirestoreException.Code.ABORTED);
             }
 
             return null;

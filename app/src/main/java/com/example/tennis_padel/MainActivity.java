@@ -7,8 +7,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,7 +28,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -97,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.checkUserBanStatus();  // Check if the user is banned
         }
 
-        if (UserDataRepository.getInstance().getIsFromLogin()){
+        if (UserDataRepository.getInstance().getIsFromLogin()) {
             // Observe the loading status to decide when to set up navigation
             viewModel.getIsLoading().observe(this, isLoading -> {
                 if (isLoading != null && !isLoading) {
@@ -105,17 +102,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             UserDataRepository.getInstance().setIsFromLogin(false);
-        }
-        else
-            if (UserDataRepository.getInstance().getUser() == null)
-                // Observe the loading status to decide when to set up navigation
-                viewModel.getIsLoading().observe(this, isLoading -> {
-                    if (isLoading != null && !isLoading) {
-                        setupNavigation(); // Call setupNavigation when loading is complete
-                    }
-                });
-            else
-                setupNavigation();
+        } else if (UserDataRepository.getInstance().getUser() == null)
+            // Observe the loading status to decide when to set up navigation
+            viewModel.getIsLoading().observe(this, isLoading -> {
+                if (isLoading != null && !isLoading) {
+                    setupNavigation(); // Call setupNavigation when loading is complete
+                }
+            });
+        else setupNavigation();
     }
 
     @Override
@@ -126,9 +120,7 @@ public class MainActivity extends AppCompatActivity {
         if (getIntent().hasExtra("openFragment")) {
             String fragmentName = getIntent().getStringExtra("openFragment");
             if ("NotificationFragment".equals(fragmentName)) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new NotificationFragment())
-                        .commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NotificationFragment()).commit();
             }
         }
 
@@ -136,69 +128,61 @@ public class MainActivity extends AppCompatActivity {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         // Listen for invitations where the current user is the invitee
-        db.collection("invitations")
-                .whereEqualTo("inviteeId", currentUserId)
-                .whereIn("status", Arrays.asList("pending", "full"))
-                .addSnapshotListener((snapshots, e) -> {
-                    if (e != null) {
-                        Log.w("MainActivity", "Listen failed.", e);
-                        return;
-                    }
+        db.collection("invitations").whereEqualTo("inviteeId", currentUserId).whereIn("status", Arrays.asList("pending", "full")).addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.w("MainActivity", "Listen failed.", e);
+                return;
+            }
 
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            String court = dc.getDocument().getString("courtName");
-                            String time = dc.getDocument().getString("time");
-                            String status = dc.getDocument().getString("status");
+            for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                if (dc.getType() == DocumentChange.Type.ADDED) {
+                    String court = dc.getDocument().getString("courtName");
+                    String time = dc.getDocument().getString("time");
+                    String status = dc.getDocument().getString("status");
 
-                            // Show a notification to the user
-                            showNotification(court, time, status);
+                    // Show a notification to the user
+                    showNotification(court, time, status);
 
-                            // Update the status to "notified" to prevent duplicate notifications
-                            assert status != null;
-                            if (!status.equals("full"))
-                                dc.getDocument().getReference().update("status", "notified");
-                        }
-                    }
-                });
+                    // Update the status to "notified" to prevent duplicate notifications
+                    assert status != null;
+                    if (!status.equals("full"))
+                        dc.getDocument().getReference().update("status", "notified");
+                }
+            }
+        });
 
         checkAndUpdateUserSuspensions();
     }
 
     private void checkAndUpdateUserSuspensions() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            User user = document.toObject(User.class);
-                            if (user != null && user.isSuspended()) {
-                                try {
-                                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                                    Date suspensionEndDate = sdf.parse(user.getSuspensionEndDate());
-                                    Date currentDate = new Date();
-                                    if (suspensionEndDate != null && suspensionEndDate.before(currentDate)) {
-                                        // Update the user's suspended status in Firestore
-                                        updateSuspensionStatus(document.getId(), false);
-                                    }
-                                } catch (Exception e) {
-                                    Log.e("MainActivity", "Error parsing date for user suspension", e);
-                                }
+        db.collection("users").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (DocumentSnapshot document : task.getResult()) {
+                    User user = document.toObject(User.class);
+                    if (user != null && user.isSuspended()) {
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            Date suspensionEndDate = sdf.parse(user.getSuspensionEndDate());
+                            Date currentDate = new Date();
+                            if (suspensionEndDate != null && suspensionEndDate.before(currentDate)) {
+                                // Update the user's suspended status in Firestore
+                                updateSuspensionStatus(document.getId(), false);
                             }
+                        } catch (Exception e) {
+                            Log.e("MainActivity", "Error parsing date for user suspension", e);
                         }
-                    } else {
-                        Log.e("MainActivity", "Error getting documents: ", task.getException());
                     }
-                });
+                }
+            } else {
+                Log.e("MainActivity", "Error getting documents: ", task.getException());
+            }
+        });
     }
 
     private void updateSuspensionStatus(String userId, boolean isSuspended) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users").document(userId)
-                .update("suspended", isSuspended)
-                .addOnSuccessListener(aVoid -> Log.d("MainActivity", "User suspension status updated successfully"))
-                .addOnFailureListener(e -> Log.e("MainActivity", "Error updating user suspension status", e));
+        db.collection("users").document(userId).update("suspended", isSuspended).addOnSuccessListener(aVoid -> Log.d("MainActivity", "User suspension status updated successfully")).addOnFailureListener(e -> Log.e("MainActivity", "Error updating user suspension status", e));
     }
 
     private void showNotification(String court, String time, String status) {
@@ -223,19 +207,12 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         String message;
-        if (status.equals("full"))
-            message = "The game is on!";
-        else
-            message = "You've been invited to play!";
+        if (status.equals("full")) message = "The game is on!";
+        else message = "You've been invited to play!";
 
         // Step 2: Build the notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "InviteNotificationChannel")
-                .setSmallIcon(R.drawable.ic_notification)  // Replace with your notification icon
-                .setContentTitle(message)
-                .setContentText("Court: " + court + " at " + time)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "InviteNotificationChannel").setSmallIcon(R.drawable.ic_notification)  // Replace with your notification icon
+                .setContentTitle(message).setContentText("Court: " + court + " at " + time).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).setContentIntent(pendingIntent);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -269,22 +246,17 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.navigation_book_lesson) {
                 if (UserDataRepository.getInstance().getUser().getRole() == Role.ADMIN)
                     selectedFragment = new TeacherAdminFragment();
-                else
-                    selectedFragment = new BookLessonFragment();
+                else selectedFragment = new BookLessonFragment();
             }
 
             if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment)
-                        .commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
             }
             return true;
         });
 
         // To display the home fragment initially when the app starts
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment())
-                .commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
     }
 
     @Override
@@ -324,10 +296,7 @@ public class MainActivity extends AppCompatActivity {
             club.setClubLogo(imageUrl);
 
             // Use Glide to load the image
-            Glide.with(MainActivity.this)
-                    .load(club.getClubLogo())
-                    .circleCrop()
-                    .into(clubLogo);
+            Glide.with(MainActivity.this).load(club.getClubLogo()).circleCrop().into(clubLogo);
         });
 
         StorageReference fileRef = storage.getReference().child("title.txt");

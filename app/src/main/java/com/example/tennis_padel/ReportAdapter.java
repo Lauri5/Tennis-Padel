@@ -30,6 +30,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     public interface OnReportActionListener {
         void onEditReport(String reportKey, Report report);
+
         void onDeleteReport(String reportKey);
     }
 
@@ -97,11 +98,11 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
                             String name = document.getString("name");
                             String lastName = document.getString("lastName");
 
-                            if (!name.isEmpty() && !lastName.isEmpty()){
+                            if (!name.isEmpty() && !lastName.isEmpty()) {
                                 lastName = " " + lastName;
                             }
 
-                            if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())){
+                            if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())) {
                                 String email = document.getString("email");
                                 if (email != null) {
                                     // Split the email at "@" and use the first part as the display name
@@ -109,8 +110,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
                                     email = part[0];
                                 }
                                 Toast.makeText(context, "Report by: " + email + " on " + date, Toast.LENGTH_LONG).show();
-                            }
-                            else
+                            } else
                                 Toast.makeText(context, "Report by: " + name + lastName + " on " + date, Toast.LENGTH_LONG).show();
                         } else {
                             Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show();

@@ -1,13 +1,11 @@
 package com.example.tennis_padel;
 
-import android.content.Intent;
-import android.graphics.drawable.BitmapDrawable;
-import android.net.Uri;
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,21 +19,19 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 public class ProfileFragment extends Fragment {
 
     private TextInputEditText name, lastName, bio, labelText;
     private MaterialTextView wins, losses, rank;
-    private RatingBar  ratingBar;
+    private RatingBar ratingBar;
     private ImageView profileImage, labelPicture;
     private ProfileViewModel viewModel;
     private boolean isEditMode, isAdmin;
@@ -45,14 +41,11 @@ public class ProfileFragment extends Fragment {
     private final FirebaseStorage storage = FirebaseStorage.getInstance();
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         currentUser = UserDataRepository.getInstance().getUser();
         isAdmin = currentUser.getRole() == Role.ADMIN;
-        if(isAdmin)
-            return inflater.inflate(R.layout.fragment_admin_profile, container, false);
-        else
-            return inflater.inflate(R.layout.fragment_profile, container, false);
+        if (isAdmin) return inflater.inflate(R.layout.fragment_admin_profile, container, false);
+        else return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
     @Override
@@ -67,7 +60,7 @@ public class ProfileFragment extends Fragment {
             setupEditButton(view.findViewById(R.id.edit));
             setupLogoutButton(view.findViewById(R.id.logout));
             notificationButton(view.findViewById(R.id.notifications));
-        }else{
+        } else {
             setupAdminViews(view);
             setupAdminImagePicker();
             setupLogoutButton(view.findViewById(R.id.logout));
@@ -82,10 +75,7 @@ public class ProfileFragment extends Fragment {
 
         labelText.setText(club.getClubName());
 
-        Glide.with(this)
-                .load(club.getClubLogo())
-                .circleCrop()
-                .into(labelPicture);
+        Glide.with(this).load(club.getClubLogo()).circleCrop().into(labelPicture);
 
         labelPicture.setOnClickListener(v -> {
             if (isEditMode) {
@@ -100,10 +90,7 @@ public class ProfileFragment extends Fragment {
         imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                 selectedImageUri = result.getData().getData(); // Store the URI
-                Glide.with(requireContext())
-                        .load(selectedImageUri)
-                        .circleCrop()
-                        .into(labelPicture);
+                Glide.with(requireContext()).load(selectedImageUri).circleCrop().into(labelPicture);
             }
         });
     }
@@ -162,22 +149,15 @@ public class ProfileFragment extends Fragment {
         imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                 selectedImageUri = result.getData().getData(); // Store the URI
-                Glide.with(requireContext())
-                        .load(selectedImageUri)
-                        .circleCrop()
-                        .into(profileImage);
+                Glide.with(requireContext()).load(selectedImageUri).circleCrop().into(profileImage);
             }
         });
     }
 
     private void updateProfileImage(String imageUrl) {
-        Glide.with(requireContext())
-                .load(imageUrl)
-                .apply(RequestOptions.circleCropTransform())
-                .into(profileImage);
+        Glide.with(requireContext()).load(imageUrl).apply(RequestOptions.circleCropTransform()).into(profileImage);
         if (!isEditMode) {
-            viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(),
-                    bio.getText().toString().trim(), imageUrl);
+            viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(), bio.getText().toString().trim(), imageUrl);
         }
     }
 
@@ -194,14 +174,12 @@ public class ProfileFragment extends Fragment {
                 if (selectedImageUri != null) {
                     // If a new image was selected, upload it and then update the user data
                     viewModel.uploadImageToFirebase(selectedImageUri, imageUrl -> {
-                        viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(),
-                                bio.getText().toString().trim(), imageUrl);
+                        viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(), bio.getText().toString().trim(), imageUrl);
                         selectedImageUri = null; // Clear the URI after updating
                     });
                 } else {
                     // Update the user without changing the image if no new image is selected
-                    viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(),
-                            bio.getText().toString().trim(), currentUser.getProfilePicture());
+                    viewModel.updateUser(name.getText().toString().trim(), lastName.getText().toString().trim(), bio.getText().toString().trim(), currentUser.getProfilePicture());
                 }
             }
         });
@@ -211,8 +189,7 @@ public class ProfileFragment extends Fragment {
         notificationButton.setOnClickListener(view -> {
             NotificationFragment notificationFragment = new NotificationFragment();
             FragmentTransaction fragmentTransaction = requireActivity().getSupportFragmentManager().beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment_container, notificationFragment)
-                    .commit();
+            fragmentTransaction.replace(R.id.fragment_container, notificationFragment).commit();
         });
     }
 
@@ -225,14 +202,14 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateEditMode() {
-        if (!isAdmin){
+        if (!isAdmin) {
             name.setFocusable(isEditMode);
             name.setFocusableInTouchMode(isEditMode);
             lastName.setFocusable(isEditMode);
             lastName.setFocusableInTouchMode(isEditMode);
             bio.setFocusable(isEditMode);
             bio.setFocusableInTouchMode(isEditMode);
-        }else{
+        } else {
             labelText.setFocusable(isEditMode);
             labelText.setFocusableInTouchMode(isEditMode);
         }

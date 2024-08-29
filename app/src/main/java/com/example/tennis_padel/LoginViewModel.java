@@ -40,43 +40,40 @@ public class LoginViewModel extends ViewModel {
 
     public void checkBanStatus() {
         String currentUserId = mAuth.getCurrentUser().getUid();
-        db.collection("users").document(currentUserId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    User user = documentSnapshot.toObject(User.class);
-                    if (user != null) {
-                        if (user.isBanned()) {
-                            isUserBanned.postValue(true);
+        db.collection("users").document(currentUserId).get().addOnSuccessListener(documentSnapshot -> {
+            User user = documentSnapshot.toObject(User.class);
+            if (user != null) {
+                if (user.isBanned()) {
+                    isUserBanned.postValue(true);
+                    mAuth.signOut();
+                } else if (user.isSuspended()) {
+                    try {
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        Date suspensionEndDate = sdf.parse(user.getSuspensionEndDate());
+                        Date currentDate = new Date();
+                        if (suspensionEndDate != null && suspensionEndDate.after(currentDate)) {
+                            isUserSuspended.postValue(true);
+                            user.setSuspended(false);
                             mAuth.signOut();
-                        } else if (user.isSuspended()) {
-                            try {
-                                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                                Date suspensionEndDate = sdf.parse(user.getSuspensionEndDate());
-                                Date currentDate = new Date();
-                                if (suspensionEndDate != null && suspensionEndDate.after(currentDate)) {
-                                    isUserSuspended.postValue(true);
-                                    user.setSuspended(false);
-                                    mAuth.signOut();
-                                } else {
-                                    userAuthenticated.postValue(true);
-                                }
-                            } catch (Exception e) {
-                                Log.e("Date Parsing", "Error parsing suspension end date", e);
-                                userAuthenticated.postValue(true); // Proceed if date parsing fails
-                            }
                         } else {
                             userAuthenticated.postValue(true);
                         }
-                    } else {
-                        authenticationFailed.postValue(true);
+                    } catch (Exception e) {
+                        Log.e("Date Parsing", "Error parsing suspension end date", e);
+                        userAuthenticated.postValue(true); // Proceed if date parsing fails
                     }
-                    isLoading.postValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    authenticationFailed.postValue(true);
-                    isLoading.postValue(false);
-                    Log.e("LoginViewModel", "Failed to fetch user data: " + e.getMessage());
-                });
+                } else {
+                    userAuthenticated.postValue(true);
+                }
+            } else {
+                authenticationFailed.postValue(true);
+            }
+            isLoading.postValue(false);
+        }).addOnFailureListener(e -> {
+            authenticationFailed.postValue(true);
+            isLoading.postValue(false);
+            Log.e("LoginViewModel", "Failed to fetch user data: " + e.getMessage());
+        });
     }
 
     public boolean isUserLoggedIn() {

@@ -1,8 +1,6 @@
 package com.example.tennis_padel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
 
 public class Reservation implements Serializable {
     private String id;

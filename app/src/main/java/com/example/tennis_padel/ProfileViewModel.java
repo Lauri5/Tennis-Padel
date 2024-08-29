@@ -1,15 +1,9 @@
 package com.example.tennis_padel;
 
 import android.net.Uri;
-import android.util.Log;
-import android.widget.ImageView;
 
 import androidx.lifecycle.ViewModel;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -33,12 +27,11 @@ public class ProfileViewModel extends ViewModel {
         user.setBio(bio);
         user.setProfilePicture(profilePicture);
         if (user.getId() != null) {
-            db.collection("users").document(user.getId())
-                    .update("name", name, "lastName", lastName, "bio", bio, "profilePicture", profilePicture);
+            db.collection("users").document(user.getId()).update("name", name, "lastName", lastName, "bio", bio, "profilePicture", profilePicture);
         }
     }
 
-    public void updateLabel(String label){
+    public void updateLabel(String label) {
         byte[] data = label.getBytes(StandardCharsets.UTF_8);
 
         StorageReference fileRef = storage.getReference().child("title.txt");
@@ -47,7 +40,7 @@ public class ProfileViewModel extends ViewModel {
         uploadTask.addOnSuccessListener(taskSnapshot -> UserDataRepository.getInstance().getClub().setClubName(label));
     }
 
-    public void updateImage(String image){
+    public void updateImage(String image) {
         storage.getReference("admin.jpg").child(image);
         UserDataRepository.getInstance().getClub().setClubLogo(image);
     }
@@ -55,24 +48,20 @@ public class ProfileViewModel extends ViewModel {
     public void uploadImageToFirebase(Uri imageUri, OnImageUploadListener listener) {
         if (imageUri != null && user != null) {
             StorageReference storageReference = storage.getReference("images/" + user.getId());
-            storageReference.putFile(imageUri).addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl()
-                    .addOnSuccessListener(uri -> {
-                        String downloadUrl = uri.toString();
-                        listener.onImageUploaded(downloadUrl);
-                    })
-            );
+            storageReference.putFile(imageUri).addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                String downloadUrl = uri.toString();
+                listener.onImageUploaded(downloadUrl);
+            }));
         }
     }
 
     public void uploadImageLabelToFirebase(Uri imageUri, OnImageUploadListener listener) {
         if (imageUri != null && user != null) {
             StorageReference storageReference = storage.getReference("admin.jpg");
-            storageReference.putFile(imageUri).addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl()
-                    .addOnSuccessListener(uri -> {
-                        String downloadUrl = uri.toString();
-                        listener.onImageUploaded(downloadUrl);
-                    })
-            );
+            storageReference.putFile(imageUri).addOnSuccessListener(taskSnapshot -> storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                String downloadUrl = uri.toString();
+                listener.onImageUploaded(downloadUrl);
+            }));
         }
     }
 

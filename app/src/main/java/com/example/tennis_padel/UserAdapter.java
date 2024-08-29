@@ -2,10 +2,10 @@ package com.example.tennis_padel;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -60,7 +60,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         // Condition to check and set the user's display name and last name based on the rank flag
         if (!isRank) {
             // Handle the case where the name might be empty or null
-            if ((name == null || name.isEmpty()) && lastName != null){
+            if ((name == null || name.isEmpty()) && lastName != null) {
                 // Remove whitespace and set last name as the display name if no first name is provided
                 holder.nameTextView.setText(lastName.trim());
             } else {
@@ -81,10 +81,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         }
 
         // Load and set the user's profile picture using Glide with circle crop transformation
-        Glide.with(context)
-                .load(user.getProfilePicture())
-                .apply(RequestOptions.circleCropTransform())
-                .into(holder.imageView);
+        Glide.with(context).load(user.getProfilePicture()).apply(RequestOptions.circleCropTransform()).into(holder.imageView);
 
         // Set a click listener on the entire user item view
         holder.itemView.setOnClickListener(v -> {
@@ -94,7 +91,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         });
 
         // Fallback to displaying the username extracted from the email if both name and last name are absent
-        if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())){
+        if ((name == null || name.isEmpty()) && (lastName == null || lastName.isEmpty())) {
             String email = user.getEmail();
             if (email != null) {
                 // Split the email at "@" and use the first part as the display name
@@ -119,11 +116,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
-            if (!isRank){
+            if (!isRank) {
                 nameTextView = itemView.findViewById(R.id.nameSearch);
                 lastNameTextView = itemView.findViewById(R.id.lastNameSearch);
                 imageView = itemView.findViewById(R.id.imageSearch);
-            }else{
+            } else {
 
                 nameTextView = itemView.findViewById(R.id.user_name);
                 imageView = itemView.findViewById(R.id.imageRank);
@@ -154,8 +151,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         } else {
             query = query.toLowerCase();
             for (User user : userList) {
-                if (user.getName().toLowerCase().contains(query) ||
-                        user.getLastName().toLowerCase().contains(query)) {
+                if (user.getName().toLowerCase().contains(query) || user.getLastName().toLowerCase().contains(query)) {
                     filteredUserList.add(user);
                 }
             }

@@ -61,8 +61,7 @@ public class Login extends AppCompatActivity {
             String password = String.valueOf(editTextPassword.getText());
             if (email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Fill the Login field correctly", Toast.LENGTH_SHORT).show();
-            else
-                loginViewModel.loginUser(email, password);
+            else loginViewModel.loginUser(email, password);
         });
 
         // If user is authenticated the main activity gets selected

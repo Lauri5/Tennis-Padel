@@ -5,18 +5,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 enum Role {
-    ADMIN,
-    TEACHER,
-    STUDENT
+    ADMIN, TEACHER, STUDENT
 }
 
-enum Report{
-    UNSPORTSMANLIKE_CONDUCT,
-    CHEATING,
-    PHYSICAL_AGGRESSION,
-    FALSE_VICTORY,
-    RULE_VIOLATION,
-    SAFETY_CONCERN
+enum Report {
+    UNSPORTSMANLIKE_CONDUCT, CHEATING, PHYSICAL_AGGRESSION, FALSE_VICTORY, RULE_VIOLATION, SAFETY_CONCERN
 }
 
 public class User implements Serializable {
@@ -137,7 +130,9 @@ public class User implements Serializable {
         this.wins++;
     }
 
-    public void subWins() { this.wins--; }
+    public void subWins() {
+        this.wins--;
+    }
 
     public int getLosses() {
         return losses;
@@ -147,7 +142,9 @@ public class User implements Serializable {
         this.losses++;
     }
 
-    public void subLosses() { this.losses--; }
+    public void subLosses() {
+        this.losses--;
+    }
 
     public HashMap<String, Report> getReports() {
         return reports;
@@ -171,7 +168,7 @@ public class User implements Serializable {
 
     public int getRatingRank() {
         if (wins + losses != 0) {
-            ratingRank = (int)(((float) wins / (wins + losses)) * 100);
+            ratingRank = (int) (((float) wins / (wins + losses)) * 100);
         } else {
             ratingRank = 0; // Handle cases where no games have been played yet
         }

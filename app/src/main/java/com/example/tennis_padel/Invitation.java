@@ -4,10 +4,7 @@ public class Invitation {
 
     private String id, courtId, courtName, time, inviterId, status,  inviteeId, courtType;
 
-    // Constructor, getters, and setters
-
-    public Invitation() {
-    }
+    public Invitation() {}
 
     public String getId() {
         return id;

@@ -2,7 +2,6 @@ package com.example.tennis_padel;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,8 +51,7 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
 
     @Override
     public CourtViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_court, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_court, parent, false);
         return new CourtViewHolder(view);
     }
 
@@ -63,10 +61,8 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
         if (onCourtSelectedListener != null) {
             if (!isAdmin)
                 holder.bind(court, holder.itemView.getContext(), selectedDateTime, onCourtSelectedListener);
-            else
-                holder.bind(court, holder.itemView.getContext(), onCourtSelectedListener);
-        }else
-            holder.bind(court, holder.itemView.getContext(), fragmentManager, selectedDateTime);
+            else holder.bind(court, holder.itemView.getContext(), onCourtSelectedListener);
+        } else holder.bind(court, holder.itemView.getContext(), fragmentManager, selectedDateTime);
     }
 
     @Override

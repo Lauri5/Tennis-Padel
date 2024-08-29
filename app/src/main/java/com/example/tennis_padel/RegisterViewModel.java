@@ -21,21 +21,17 @@ public class RegisterViewModel extends ViewModel {
     // Register process
     public void registerUser(String email, String password) {
         isLoading.setValue(true);
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    isLoading.setValue(false);
-                    if (task.isSuccessful()) {
-                        userRegistered.setValue(true);
-                        String id = mAuth.getCurrentUser().getUid();
-                        User user = new User(mAuth.getCurrentUser().getUid(), email);
-                        db.collection("users") // Replace "users" with your collection name
-                                .document(id)
-                                .set(user)
-                                .addOnSuccessListener(aVoid -> userRegistered.setValue(true))
-                                .addOnFailureListener(e -> registrationFailed.setValue(true));
-                    } else {
-                        registrationFailed.setValue(true);
-                    }
-                });
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
+            isLoading.setValue(false);
+            if (task.isSuccessful()) {
+                userRegistered.setValue(true);
+                String id = mAuth.getCurrentUser().getUid();
+                User user = new User(mAuth.getCurrentUser().getUid(), email);
+                db.collection("users") // Replace "users" with your collection name
+                        .document(id).set(user).addOnSuccessListener(aVoid -> userRegistered.setValue(true)).addOnFailureListener(e -> registrationFailed.setValue(true));
+            } else {
+                registrationFailed.setValue(true);
+            }
+        });
     }
 }

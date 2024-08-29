@@ -47,8 +47,7 @@ public class Register extends AppCompatActivity {
             String password = String.valueOf(editTextPassword.getText());
             if (email.isEmpty() || password.isEmpty())
                 Toast.makeText(this, "Fill the Register field correctly", Toast.LENGTH_SHORT).show();
-            else
-                registerViewModel.registerUser(email, password);
+            else registerViewModel.registerUser(email, password);
         });
 
         // If user is authenticated the main activity gets selected

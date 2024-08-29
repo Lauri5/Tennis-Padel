@@ -8,22 +8,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -110,26 +112,24 @@ public class CourtDetailFragment extends Fragment {
     private void loadCourtDetails() {
         String formattedDateTime = formatDateTime(selectedDateTime);
 
-        db.collection("courts").document(court.getId())
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult().exists()) {
-                        Court court = task.getResult().toObject(Court.class);
-                        if (court != null) {
-                            int playerCount = 0;
+        db.collection("courts").document(court.getId()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().exists()) {
+                Court court = task.getResult().toObject(Court.class);
+                if (court != null) {
+                    int playerCount = 0;
 
-                            for (Reservation reservation : court.getReservations()) {
-                                if (reservation.getDateTime().equals(formattedDateTime)) {
-                                    playerCount++;
-                                }
-                            }
-
-                            courtStatus.setText("There are currently " + playerCount + "/4 players in this court.");
+                    for (Reservation reservation : court.getReservations()) {
+                        if (reservation.getDateTime().equals(formattedDateTime)) {
+                            playerCount++;
                         }
-                    } else {
-                        Toast.makeText(getContext(), "Failed to load court details.", Toast.LENGTH_SHORT).show();
                     }
-                });
+
+                    courtStatus.setText("There are currently " + playerCount + "/4 players in this court.");
+                }
+            } else {
+                Toast.makeText(getContext(), "Failed to load court details.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void joinCourt() {
@@ -142,16 +142,13 @@ public class CourtDetailFragment extends Fragment {
         String userId = firebaseUser.getUid();
         String reservationId = generateReservationId(userId, selectedDateTime);
 
-        db.collection("reservations")
-                .whereEqualTo("id", reservationId)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult().isEmpty()) {
-                        createReservation(reservationId);
-                    } else {
-                        Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        db.collection("reservations").whereEqualTo("id", reservationId).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult().isEmpty()) {
+                createReservation(reservationId);
+            } else {
+                Toast.makeText(getContext(), "You already have a reservation at this time.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void createReservation(String reservationId) {
@@ -179,18 +176,11 @@ public class CourtDetailFragment extends Fragment {
                 // Check if the user already has a reservation at the selected time
                 for (Reservation reservation : userReservations) {
                     if (reservation.getDateTime().equals(formattedDateTime) && reservation.getCourtId().equals(court.getId())) {
-                        throw new FirebaseFirestoreException("User already has a reservation at this time.",
-                                FirebaseFirestoreException.Code.ABORTED);
+                        throw new FirebaseFirestoreException("User already has a reservation at this time.", FirebaseFirestoreException.Code.ABORTED);
                     }
                 }
 
-                Reservation newReservation = new Reservation(
-                        reservationId,
-                        court.getId(),
-                        formattedDateTime,
-                        false,
-                        userId
-                );
+                Reservation newReservation = new Reservation(reservationId, court.getId(), formattedDateTime, false, userId);
 
                 reservations.add(newReservation);
                 userReservations.add(newReservation);
@@ -215,8 +205,7 @@ public class CourtDetailFragment extends Fragment {
                 }
 
             } else {
-                throw new FirebaseFirestoreException("Court or User not found.",
-                        FirebaseFirestoreException.Code.ABORTED);
+                throw new FirebaseFirestoreException("Court or User not found.", FirebaseFirestoreException.Code.ABORTED);
             }
 
             return null;
@@ -241,10 +230,14 @@ public class CourtDetailFragment extends Fragment {
 
     private String getImageName(String typeStr) {
         switch (typeStr) {
-            case "TENNIS_INDOOR": return "indoor.jpg";
-            case "PADEL_OUTDOOR": return "padel_outdoor.jpg";
-            case "PADEL_INDOOR": return "padel_indoor.jpg";
-            default: return "outdoor.jpg";
+            case "TENNIS_INDOOR":
+                return "indoor.jpg";
+            case "PADEL_OUTDOOR":
+                return "padel_outdoor.jpg";
+            case "PADEL_INDOOR":
+                return "padel_indoor.jpg";
+            default:
+                return "outdoor.jpg";
         }
     }
 
@@ -257,44 +250,38 @@ public class CourtDetailFragment extends Fragment {
             return;
         }
 
-        db.collection("users").document(user.getId())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    User existingUser = documentSnapshot.toObject(User.class);
-                    if (existingUser != null) {
-                        boolean hasReservation = false;
-                        if (existingUser.getReservations() != null) {
-                            for (Reservation reservation : existingUser.getReservations()) {
-                                if (reservation.getDateTime().equals(formattedDateTime)) {
-                                    hasReservation = true;
-                                    break;
-                                }
-                            }
+        db.collection("users").document(user.getId()).get().addOnSuccessListener(documentSnapshot -> {
+            User existingUser = documentSnapshot.toObject(User.class);
+            if (existingUser != null) {
+                boolean hasReservation = false;
+                if (existingUser.getReservations() != null) {
+                    for (Reservation reservation : existingUser.getReservations()) {
+                        if (reservation.getDateTime().equals(formattedDateTime)) {
+                            hasReservation = true;
+                            break;
                         }
-
-                        if (hasReservation) {
-                            Toast.makeText(getContext(), "User already has a reservation at this time.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-
-                        db.collection("invitations")
-                                .whereEqualTo("inviteeId", user.getId())
-                                .whereEqualTo("time", formattedDateTime)
-                                .get()
-                                .addOnCompleteListener(task -> {
-                                    if (task.isSuccessful() && task.getResult().isEmpty()) {
-                                        sendInvitation(user, court, formattedDateTime);
-                                    } else {
-                                        Toast.makeText(getContext(), "User already has an invitation for this time.", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                    } else {
-                        Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
                     }
-                }).addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error checking reservations.", Toast.LENGTH_SHORT).show();
-                    Log.e("CourtDetailFragment", "Error fetching user data", e);
+                }
+
+                if (hasReservation) {
+                    Toast.makeText(getContext(), "User already has a reservation at this time.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                db.collection("invitations").whereEqualTo("inviteeId", user.getId()).whereEqualTo("time", formattedDateTime).get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult().isEmpty()) {
+                        sendInvitation(user, court, formattedDateTime);
+                    } else {
+                        Toast.makeText(getContext(), "User already has an invitation for this time.", Toast.LENGTH_SHORT).show();
+                    }
                 });
+            } else {
+                Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Error checking reservations.", Toast.LENGTH_SHORT).show();
+            Log.e("CourtDetailFragment", "Error fetching user data", e);
+        });
     }
 
     private void sendInvitation(User user, Court court, String formattedDateTime) {
@@ -309,14 +296,12 @@ public class CourtDetailFragment extends Fragment {
         invitation.setInviteeId(user.getId());
         invitation.setStatus("pending");
 
-        db.collection("invitations").add(invitation)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Invitation sent to " + user.getName(), Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Failed to send invitation", Toast.LENGTH_SHORT).show();
-                    Log.e("CourtDetailFragment", "Error sending invitation", e);
-                });
+        db.collection("invitations").add(invitation).addOnSuccessListener(documentReference -> {
+            Toast.makeText(getContext(), "Invitation sent to " + user.getName(), Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Failed to send invitation", Toast.LENGTH_SHORT).show();
+            Log.e("CourtDetailFragment", "Error sending invitation", e);
+        });
     }
 
     public static CourtDetailFragment newInstance(Court court, Date dateTime) {

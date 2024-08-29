@@ -4,12 +4,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.List;
 
 public class SearchFragment extends Fragment {
 
@@ -69,9 +69,6 @@ public class SearchFragment extends Fragment {
         OtherProfileFragment otherProfileFragment = OtherProfileFragment.newInstance(user);
 
         // Replace the current fragment with OtherProfileFragment
-        requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, otherProfileFragment)
-                .addToBackStack(null)
-                .commit();
+        requireActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, otherProfileFragment).addToBackStack(null).commit();
     }
 }
