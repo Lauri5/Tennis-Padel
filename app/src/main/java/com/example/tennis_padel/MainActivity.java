@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Hide the ActionBar if it's present
+        // Hides the ActionBar since a custom one is used
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -94,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.checkUserBanStatus();  // Check if the user is banned
         }
 
+        // This part of code allows to load correctly the home for both admin and common users
         if (UserDataRepository.getInstance().getIsFromLogin()) {
             // Observe the loading status to decide when to set up navigation
             viewModel.getIsLoading().observe(this, isLoading -> {
@@ -259,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
     }
 
+    // This method allows to know if the user touches a zone outside the keyboard
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {

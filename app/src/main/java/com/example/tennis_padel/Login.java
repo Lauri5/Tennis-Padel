@@ -41,7 +41,7 @@ public class Login extends AppCompatActivity {
             }
         });
 
-        // Observe the ban status
+        // Observe the suspended status
         loginViewModel.isUserSuspended.observe(this, suspended -> {
             if (suspended) {
                 Toast.makeText(Login.this, "Your account has been suspended.", Toast.LENGTH_LONG).show();

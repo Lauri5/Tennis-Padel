@@ -59,7 +59,7 @@ public class HomeFragment extends Fragment {
         currentUser = UserDataRepository.getInstance().getUser();
         isAdmin = (currentUser != null && currentUser.getRole() == Role.ADMIN);
 
-        // Inflate the layout for this fragment
+        // Inflate the layout for the fragment based on the role of the current user
         if (isAdmin) {
             view = inflater.inflate(R.layout.fragment_admin_home, container, false);
             loadAdminUI(view);
@@ -74,11 +74,9 @@ public class HomeFragment extends Fragment {
         courtRecyclerView.setLayoutManager(gridLayoutManager);
 
         if (isAdmin) {
-            // Admin view: allow selection
             courtAdapter = new CourtAdapter(courtList, selectedCourt -> {
                 this.selectedCourt = selectedCourt;
                 Toast.makeText(getContext(), "Court " + selectedCourt.getName() + " selected.", Toast.LENGTH_SHORT).show();
-                // Further logic for selected court
             });
         } else {
             courtAdapter = new CourtAdapter(courtList, getParentFragmentManager(), selectedDateTime);
@@ -96,6 +94,7 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    // The UI of the common user
     private void loadNoAdminUI(View view) {
         selectedDateTextView = view.findViewById(R.id.selected_date_textview);
 
@@ -110,6 +109,7 @@ public class HomeFragment extends Fragment {
         timePickerButton.setOnClickListener(v -> showTimePicker());
     }
 
+    // This maps the CourtType with better written strings
     private Map<String, String> getCourtTypeMapping() {
         Map<String, String> courtTypeMapping = new HashMap<>();
         courtTypeMapping.put("TENNIS_INDOOR", "Indoor Tennis");
@@ -137,6 +137,7 @@ public class HomeFragment extends Fragment {
         return null;  // Return null if no key found
     }
 
+    // The UI of the Admin
     private void loadAdminUI(View view) {
         addButton = view.findViewById(R.id.addButton);
         editButton = view.findViewById(R.id.editButton);
@@ -162,6 +163,7 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    // Dialog that allows to create or edit courts to the admin
     private void showCourtDialog(Court existingCourt) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(existingCourt == null ? "Add New Court" : "Edit Court");
@@ -172,10 +174,7 @@ public class HomeFragment extends Fragment {
         EditText editTextName = dialogView.findViewById(R.id.editTextCourtName);
         Spinner spinnerType = dialogView.findViewById(R.id.spinnerCourtType);
 
-        if (existingCourt != null) {
-            editTextName.setText(existingCourt.getName());
-            // Set spinner value to existing court type
-        }
+        if (existingCourt != null) editTextName.setText(existingCourt.getName());
 
         setupCourtTypeSpinner(spinnerType);
 
@@ -206,7 +205,6 @@ public class HomeFragment extends Fragment {
 
             // Update the document in Firestore with the ID
             documentReference.set(newCourt).addOnSuccessListener(aVoid -> {
-                // Court added successfully with ID
                 loadCourtAdmin();
             });
         });

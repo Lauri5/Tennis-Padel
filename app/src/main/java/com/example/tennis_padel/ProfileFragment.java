@@ -68,6 +68,7 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // This method sets up the view for the Admin
     private void setupAdminViews(View view) {
         labelText = view.findViewById(R.id.labelText);
         labelPicture = view.findViewById(R.id.labelPicture);
@@ -95,6 +96,7 @@ public class ProfileFragment extends Fragment {
         });
     }
 
+    // This is the edit button for the custom Actionbar
     private void setupEditLabelButton(MaterialButton editButton) {
         isEditMode = false;
         updateEditMode();
@@ -161,6 +163,7 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    // The edit button changes based on the editmode value
     private void setupEditButton(MaterialButton editButton) {
         isEditMode = false;
         updateEditMode();

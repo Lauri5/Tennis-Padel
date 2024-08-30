@@ -4,15 +4,13 @@ import java.io.Serializable;
 
 public class Reservation implements Serializable {
     private String id;
-    private String courtId;  // Store the court's ID
+    private String courtId;
     private String dateTime;
-    private String player;  // Store player IDs
+    private String player;
     private boolean lesson;
-    private String teacherId;  // Store the teacher's ID
+    private String teacherId;
 
-    // No-argument constructor required for Firestore serialization
-    public Reservation() {
-    }
+    public Reservation() {}
 
     public Reservation(String id, String courtId, String dateTime, boolean lesson, String player) {
         this.id = id;
@@ -22,7 +20,6 @@ public class Reservation implements Serializable {
         this.player = player;
     }
 
-    // Getter and setter methods
     public String getId() {
         return id;
     }

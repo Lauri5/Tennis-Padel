@@ -60,9 +60,6 @@ public class NotificationFragment extends Fragment {
                     // Set the Firestore document ID
                     invitation.setId(document.getId());
 
-                    // Debugging log to check courtId
-                    Log.d("NotificationFragment", "Court ID: " + invitation.getCourtId());
-
                     invitationsList.add(invitation);
                 }
                 notificationAdapter.notifyDataSetChanged();
@@ -118,7 +115,7 @@ public class NotificationFragment extends Fragment {
     }
 
     private void addReservation(Invitation invitation) {
-        String formattedDateTime = invitation.getTime(); // This will be used as selectedDateTime
+        String formattedDateTime = invitation.getTime();
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String reservationId = generateReservationId(userId, formattedDateTime);
 
@@ -188,10 +185,5 @@ public class NotificationFragment extends Fragment {
 
     private String generateReservationId(String userId, String dateTime) {
         return userId + "-" + dateTime;
-    }
-
-    private String formatDateTime(Date dateTime) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd-HH", Locale.getDefault());
-        return dateFormat.format(dateTime);
     }
 }

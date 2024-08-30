@@ -62,6 +62,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         public void bind(Invitation invitation, OnAcceptClickListener acceptClickListener, OnDeclineClickListener declineClickListener) {
             invitationDetails.setText("Court: " + invitation.getCourtName() + "\nTime: " + invitation.getTime());
 
+            // This allows to chose the correct image based on the CourtType
             String imageName;
             switch (invitation.getCourtType()) {
                 case "TENNIS_OUTDOOR":

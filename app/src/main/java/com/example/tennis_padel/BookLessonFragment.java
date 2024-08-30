@@ -160,6 +160,7 @@ public class BookLessonFragment extends Fragment {
         });
     }
 
+    // Similarly to the HomeFragment this methods loads court but only fully available ones
     private void loadAvailableCourts() {
         FirebaseUser firebaseUser = viewModel.getCurrentUser();
         if (firebaseUser != null) {
@@ -238,7 +239,7 @@ public class BookLessonFragment extends Fragment {
 
     private void checkIfReadyToBook() {
         if (isTeacherSelected && isCourtSelected) {
-            bookButton.setEnabled(true); // Enable the "Book" button
+            bookButton.setEnabled(true);
         }
     }
 

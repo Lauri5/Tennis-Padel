@@ -1,5 +1,6 @@
 package com.example.tennis_padel;
 
+// Singleton that allows always to get and set certain informations
 public class UserDataRepository {
     private static UserDataRepository instance;
     private User user;

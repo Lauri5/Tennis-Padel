@@ -45,6 +45,7 @@ public class ProfileViewModel extends ViewModel {
         UserDataRepository.getInstance().getClub().setClubLogo(image);
     }
 
+    // This uploads the user image to the Firebase storage
     public void uploadImageToFirebase(Uri imageUri, OnImageUploadListener listener) {
         if (imageUri != null && user != null) {
             StorageReference storageReference = storage.getReference("images/" + user.getId());
@@ -55,6 +56,7 @@ public class ProfileViewModel extends ViewModel {
         }
     }
 
+    // This uploads the club logo to the Firebase storage
     public void uploadImageLabelToFirebase(Uri imageUri, OnImageUploadListener listener) {
         if (imageUri != null && user != null) {
             StorageReference storageReference = storage.getReference("admin.jpg");

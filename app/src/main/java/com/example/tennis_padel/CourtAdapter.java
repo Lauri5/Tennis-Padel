@@ -28,14 +28,14 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
     private boolean isAdmin = false;
     private OnCourtSelectedListener onCourtSelectedListener; // New
 
-    // Existing constructor
+    // Constructor for HomeFragment for the User
     public CourtAdapter(List<Court> courtList, FragmentManager fragmentManager, Calendar selectedDateTime) {
         this.courtList = courtList;
         this.fragmentManager = fragmentManager;
         this.selectedDateTime = selectedDateTime;
     }
 
-    // New constructor for BookLessonFragment
+    // Constructor for HomeFragment for the Admin
     public CourtAdapter(List<Court> courtList, OnCourtSelectedListener onCourtSelectedListener) {
         this.courtList = courtList;
         this.onCourtSelectedListener = onCourtSelectedListener;
@@ -96,15 +96,12 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
                 case AVAILABLE:
                     cardView.setCardBackgroundColor(Color.parseColor("#00FF00"));  // Green for AVAILABLE
                     break;
-                case RESERVED:
-                    cardView.setCardBackgroundColor(Color.parseColor("#FF0000"));  // Red for RESERVED
-                    break;
                 case SEMI_RESERVED:
                     cardView.setCardBackgroundColor(Color.parseColor("#FFFF00"));  // Yellow for SEMI_RESERVED
                     break;
             }
 
-            // Existing behavior: Navigate to CourtDetailFragment
+            // Navigate to CourtDetailFragment
             cardView.setOnClickListener(v -> {
                 FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(R.id.fragment_container, CourtDetailFragment.newInstance(court, selectedDateTime.getTime()));
@@ -120,7 +117,6 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
             courtName.setText(court.getName());
             cardView.setCardBackgroundColor(Color.parseColor("#00FF00"));
 
-            // New behavior: Just select the court without navigation
             cardView.setOnClickListener(v -> {
                 if (onCourtSelectedListener != null) {
                     onCourtSelectedListener.onCourtSelected(court);
@@ -135,7 +131,6 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
             courtName.setText(court.getName());
             cardView.setCardBackgroundColor(Color.parseColor("#00FF00"));
 
-            // New behavior: Just select the court without navigation
             cardView.setOnClickListener(v -> {
                 if (onCourtSelectedListener != null) {
                     onCourtSelectedListener.onCourtSelected(court);
@@ -146,7 +141,7 @@ public class CourtAdapter extends RecyclerView.Adapter<CourtAdapter.CourtViewHol
             loadImage(context, court);
         }
 
-
+        // Select the CourtType
         private void loadImage(Context context, Court court) {
             String imageName;
             switch (court.getType()) {

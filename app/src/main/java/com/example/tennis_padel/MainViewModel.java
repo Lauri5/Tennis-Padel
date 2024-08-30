@@ -107,6 +107,7 @@ public class MainViewModel extends ViewModel {
         return allUsersLiveData;
     }
 
+    // This method remove the past reservations
     public void removePastReservations() {
         // Get the current date with time set to the start of the day (00:00)
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd", Locale.getDefault());

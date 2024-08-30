@@ -109,6 +109,7 @@ public class CourtDetailFragment extends Fragment {
         });
     }
 
+    // Load how many reservation are currently in the court
     private void loadCourtDetails() {
         String formattedDateTime = formatDateTime(selectedDateTime);
 

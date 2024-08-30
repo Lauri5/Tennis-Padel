@@ -95,8 +95,6 @@ public class OtherProfileFragment extends Fragment {
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         User currentUser = UserDataRepository.getInstance().getUser();
-
-        // Initialize the RecyclerView and the Adapter here to avoid NullPointerException
         setupReportsRecyclerView(reportsRecyclerView);
 
         viewModel.getUserLiveData().observe(getViewLifecycleOwner(), user -> {
